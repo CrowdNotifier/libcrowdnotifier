@@ -12,9 +12,9 @@ import {
   randombytes_buf,
   waitReady
 } from "./sodium";
-import { HealthAuthorityBackend } from "healthAuthorityBackend";
-import { Visitor } from "visitor";
-import { Location } from "location";
+import { HealthAuthorityBackend } from "./healthAuthorityBackend";
+import { Visitor } from "./visitor";
+import { Location } from "./location";
 import { CrowdBackend } from "./crowdbackend";
 import { HealthAuthority } from "./healthAuthority";
 import { Log } from "./log";
@@ -47,7 +47,7 @@ async function main() {
   // Setting up the local health authority
   const doctor = new HealthAuthority(internet, bit.host, "Vaud");
 
-  // Creating venues
+  // Creating locations
   const restaurant = new Location(
     internet,
     bit.host,
@@ -69,7 +69,7 @@ async function main() {
 
   // Creating a client and let her visit restaurant
   const client1 = new Visitor(internet, crowdBack.host, "foo");
-  client1.addVenue(restaurant.QRentry(), true, 1000, 1100);
+  client1.addLocation(restaurant.QRentry(), true, 1000, 1100);
 
   log.info("Triggering notification");
   const crowdCode = await doctor.getCrowdCode(restaurant, 950, 1050);

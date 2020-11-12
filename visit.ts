@@ -32,11 +32,11 @@ export class Visit {
   ) {
     const esk = randombytes_buf(32);
     this.ephemeralPublicKey = crypto_scalarmult_base(esk);
-    const venuePubCurve = crypto_sign_ed25519_pk_to_curve25519(qr.publicKey);
-    this.sharedKey = crypto_scalarmult(esk, venuePubCurve);
-    const venue = diary ? "unknown" : `${qr.name}-${qr.location}`;
+    const locationPubCurve = crypto_sign_ed25519_pk_to_curve25519(qr.publicKey);
+    this.sharedKey = crypto_scalarmult(esk, locationPubCurve);
+    const loc = diary ? "unknown" : `${qr.name}-${qr.location}`;
     const msg = from_string(
-      [entry, departure, to_base64(qr.notificationKey), venue].join("::")
+      [entry, departure, to_base64(qr.notificationKey), loc].join("::")
     );
     const pkPrime = crypto_sign_ed25519_pk_to_curve25519(qr.publicKey);
     this.ciphertext = crypto_box_seal(msg, pkPrime);
@@ -60,16 +60,16 @@ export class Visit {
     }
 
     this.log.info("Fetching trace info");
-    const venueScalarCurve = crypto_sign_ed25519_sk_to_curve25519(
+    const locationScalarCurve = crypto_sign_ed25519_sk_to_curve25519(
       exposure.privKey
     );
-    const pubKey = crypto_scalarmult_base(venueScalarCurve);
+    const pubKey = crypto_scalarmult_base(locationScalarCurve);
     const msg = to_string(
-      crypto_box_seal_open(this.ciphertext, pubKey, venueScalarCurve)
+      crypto_box_seal_open(this.ciphertext, pubKey, locationScalarCurve)
     );
 
     this.log.info("Checking visit time");
-    const [entryStr, departureStr, notificationKey, venue] = msg.split("::");
+    const [entryStr, departureStr, notificationKey, loc] = msg.split("::");
     const [entry, departure] = [parseInt(entryStr), parseInt(departureStr)];
     if (entry > exposure.end || departure < exposure.start) {
       this.log.info("No matching visit times to found exposures");

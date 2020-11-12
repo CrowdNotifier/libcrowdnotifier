@@ -44,7 +44,7 @@ export class HealthAuthorityBackend {
     public host: string
   ) {
     this.kp = crypto_box_keypair();
-    this.log = new Log(`PurpleBackend`);
+    this.log = new Log(`HABackend`);
     internet.register(new URL(host), this);
     this.log.info("Created");
   }
@@ -86,7 +86,7 @@ export class HealthAuthorityBackend {
     );
     const msg = SeedMessage.decode(msgBuf);
     const seed = crypto_hash_sha256(msgBuf);
-    const venueKeypair = crypto_sign_seed_keypair(seed);
+    const locationKeypair = crypto_sign_seed_keypair(seed);
 
     // Wait for contactTracer to authorise the upload
 
@@ -95,7 +95,7 @@ export class HealthAuthorityBackend {
       `${this.urlCrowdNotifier}/${CrowdBackend.pathPostTrace}`
     );
     const data = JSON.stringify({
-      privKey: venueKeypair.privateKey,
+      privKey: locationKeypair.privateKey,
       start: ccodeEntry.start,
       end: ccodeEntry.end
     });

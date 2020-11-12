@@ -5,8 +5,8 @@ import { Log } from "./log";
 import { Internet } from "./internet";
 
 /**
- * The Visitor can visit venues and has methods to poll
- * the crowdBackend and check if any of the venues are
+ * The Visitor can visit locations and has methods to poll
+ * the crowdBackend and check if any of the location are
  * positive.
  */
 export class Visitor {
@@ -17,23 +17,23 @@ export class Visitor {
     public urlCrowdBack: string,
     public name: string
   ) {
-    this.log = new Log(`Client{${name})`);
+    this.log = new Log(`Visitor{${name})`);
     this.log.info("Created");
   }
 
   /**
    * This stores the necessary information in the internal array.
-   * @param qrcode is the entry qrcode of the venue
+   * @param qrcode is the entry qrcode of the location
    * @param agenda if the name should appear in the agenda
    * @param entry in seconds since the unix epoch
    * @param departure in seconds since the unix epoch
    */
-  addVenue(qrcode: string, agenda: boolean, entry: number, departure: number) {
+  addLocation(qrcode: string, agenda: boolean, entry: number, departure: number) {
     const qrBase64 = qrcode.replace(/.*#/, "");
     const qrBuf = from_base64(qrBase64);
     const wrapper = QRCodeWrapper.decode(qrBuf);
     const contentBuf = QRCodeContent.encode(QRCodeContent.create(wrapper.content)).finish();
-    const venue: IQRCodeContent = wrapper.content;
+    const location: IQRCodeContent = wrapper.content;
     if (
       !crypto_sign_verify_detached(
         wrapper.signature,
@@ -41,10 +41,10 @@ export class Visitor {
         wrapper.content.publicKey
       )
     ) {
-      throw new Error("Venue QRCode not correct");
+      throw new Error("Location QRCode not correct");
     }
-    this.visits.push(new Visit(venue, entry, departure, agenda));
-    this.log.info("Venue accepted:", venue.name, venue.location);
+    this.visits.push(new Visit(location, entry, departure, agenda));
+    this.log.info("Location accepted:", location.name, location.location);
   }
 
   async checkExposure(): Promise<string[]> {
