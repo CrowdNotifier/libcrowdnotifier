@@ -8,19 +8,19 @@ import {
   crypto_sign_detached,
   IKeyPair
 } from "./sodium";
-import { PurpleBackend } from "./purpleBackend";
+import { HealthAuthorityBackend } from "healthAuthorityBackend";
 import { SeedMessage, QRCodeContent, QRCodeWrapper } from "./protobuf/index";
 import { Log } from "./log";
 import { Internet } from "./internet";
 
 /**
- * The Venue class represents either a restaurant, a happening, or any other gathering of
+ * The Location class represents either a restaurant, a happening, or any other gathering of
  * people. It holds the necessary data to create the two QRcodes - one in case of an infaction,
  * and one for the clients to scan.
  *
  * Furthermore it has methods to interact with the cantonal doctor.
  */
-export class Venue {
+export class Location {
   private notificationKey: Uint8Array;
   private salt: Uint8Array;
   private seedBuf: Uint8Array;
@@ -67,6 +67,9 @@ export class Venue {
     this.log.info("Created");
   }
 
+  /**
+   * The QRentry code is printed and shown at the entrance to all visitors.
+   */
   QRentry(): string {
     const qrCodeContentSignature = crypto_sign_detached(
       this.qrCodeContentBuf,
@@ -88,6 +91,10 @@ export class Venue {
     return qrStr;
   }
 
+  /**
+   * The QRtrack code is private and only has to be revealed to the health authority
+   * in case of a trace location event.
+   */
   private QRtrack(): string {
     const msg = crypto_box_seal(this.seedBuf, this.healthAuthorityPubKey);
     const qrStr = to_base64(msg);
@@ -97,7 +104,7 @@ export class Venue {
 
   async uploadTracing(crowdCode: string) {
     this.log.info("Uploading tracing for", crowdCode);
-    const url = new URL(`${this.urlPurple}/${PurpleBackend.pathPostCrowdCode}`);
+    const url = new URL(`${this.urlPurple}/${HealthAuthorityBackend.pathPostCrowdCode}`);
     url.searchParams.set("crowdCode", crowdCode);
     return this.internet.post(url, this.QRtrack());
   }

@@ -5,11 +5,11 @@ import { Log } from "./log";
 import { Internet } from "./internet";
 
 /**
- * The Client can visit venues and has methods to poll
+ * The Visitor can visit venues and has methods to poll
  * the crowdBackend and check if any of the venues are
  * positive.
  */
-export class Client {
+export class Visitor {
   private log: Log;
   private visits: Visit[] = [];
   constructor(

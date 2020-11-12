@@ -1,5 +1,5 @@
-import { PurpleBackend } from "./purpleBackend";
-import { Venue } from "./venue";
+import { HealthAuthorityBackend } from "healthAuthorityBackend";
+import { Location } from "location";
 import { Log } from "./log";
 import { Internet } from "./internet";
 
@@ -15,12 +15,12 @@ export class HealthAuthority {
   }
 
   async getCrowdCode(
-    venue: Venue,
+    venue: Location,
     start: number,
     end: number
   ): Promise<string> {
     this.log.info("Triggering notification about:", venue.name, venue.location);
-    const url = new URL(`${this.urlPurple}/${PurpleBackend.pathGetCrowdCode}`);
+    const url = new URL(`${this.urlPurple}/${HealthAuthorityBackend.pathGetCrowdCode}`);
     Object.entries({
       name: venue.name,
       location: venue.location,

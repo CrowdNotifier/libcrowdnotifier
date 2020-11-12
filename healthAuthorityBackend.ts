@@ -13,6 +13,9 @@ import { CrowdBackend } from "./crowdbackend";
 import { Log } from "./log";
 import { Internet } from "./internet";
 
+/**
+ * The table definition of the database of the HealthAuthorityBackend.
+ */
 interface ICrowdCode {
   rand: Uint8Array;
   name: string;
@@ -22,7 +25,12 @@ interface ICrowdCode {
   used?: boolean;
 }
 
-export class PurpleBackend {
+/**
+ * The HealthAuthorityBackend makes sure that only assigned health authorities can publish
+ * codes of trace locations. It uses a public key that the locations use to encrypt their
+ * data to, so that only the HealthAuthorityBackend can decrypt the data, if needed.
+ */
+export class HealthAuthorityBackend {
   static pathGetCrowdCode = "getCrowdCode";
   static pathPostCrowdCode = "crowdCode";
 
@@ -96,7 +104,7 @@ export class PurpleBackend {
 
   async Get(path: string, search: string): Promise<string> {
     switch (path) {
-      case PurpleBackend.pathGetCrowdCode:
+      case HealthAuthorityBackend.pathGetCrowdCode:
         return this.getCrowdCode(search);
     }
     throw new Error("Path not found");
@@ -104,7 +112,7 @@ export class PurpleBackend {
 
   async Post(path: string, search: string, data: string): Promise<string> {
     switch (path) {
-      case PurpleBackend.pathPostCrowdCode:
+      case HealthAuthorityBackend.pathPostCrowdCode:
         return this.useCrowdCode(search, data);
     }
     throw new Error("Path not found");

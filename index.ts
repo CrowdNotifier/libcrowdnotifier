@@ -12,9 +12,9 @@ import {
   randombytes_buf,
   waitReady
 } from "./sodium";
-import { PurpleBackend } from "./purpleBackend";
-import { Client } from "./client";
-import { Venue } from "./venue";
+import { HealthAuthorityBackend } from "healthAuthorityBackend";
+import { Visitor } from "visitor";
+import { Location } from "location";
 import { CrowdBackend } from "./crowdbackend";
 import { HealthAuthority } from "./healthAuthority";
 import { Log } from "./log";
@@ -22,6 +22,9 @@ import { Internet } from "./internet";
 
 /**
  * This shows a full run of the CrowdNotifier system with the different elements.
+ * It simulates a visitor going to a location, which is later registered as s
+ * trace location. Then the visitor checks the CrowdBackend and indicates a
+ * possible infection.
  */
 
 const log = new Log("main");
@@ -35,42 +38,42 @@ async function main() {
 
   // Setting up backends
   const crowdBack = new CrowdBackend(internet, "https://crowdback.ubique.ch");
-  const bit = new PurpleBackend(
+  const bit = new HealthAuthorityBackend(
     internet,
     crowdBack.host,
-    "https://purple.admin.ch"
+    "https://habackend.admin.ch"
   );
 
   // Setting up the local health authority
   const doctor = new HealthAuthority(internet, bit.host, "Vaud");
 
   // Creating venues
-  const venue1 = new Venue(
+  const restaurant = new Location(
     internet,
     bit.host,
-    "bar",
-    "matrix",
+    "MontBlanc",
+    "Morges",
     "room",
     0,
     bit.pubKey()
   );
-  const venue2 = new Venue(
+  const disco = new Location(
     internet,
     bit.host,
-    "foo-bar",
-    "matrix",
-    "other room",
-    0,
+    "D!",
+    "Lausanne",
+    "main room",
+    1,
     bit.pubKey()
   );
 
-  // Creating a client and let her visit venue1
-  const client1 = new Client(internet, crowdBack.host, "foo");
-  client1.addVenue(venue1.QRentry(), true, 1000, 1100);
+  // Creating a client and let her visit restaurant
+  const client1 = new Visitor(internet, crowdBack.host, "foo");
+  client1.addVenue(restaurant.QRentry(), true, 1000, 1100);
 
   log.info("Triggering notification");
-  const crowdCode = await doctor.getCrowdCode(venue1, 950, 1050);
-  await venue1.uploadTracing(crowdCode);
+  const crowdCode = await doctor.getCrowdCode(restaurant, 950, 1050);
+  await restaurant.uploadTracing(crowdCode);
   log.info("Exposures:", await client1.checkExposure());
 }
 
