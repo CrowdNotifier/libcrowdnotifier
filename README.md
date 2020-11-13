@@ -50,6 +50,14 @@ If you want to see how it works, go to https://stackblitz.io/edit/crowdnotifier?
 As the current repo is private, stackblitz cannot reference it directly.
 This reference implementation has been made possible by the [C4DT](https://c4dt.org).
 
+The following figures show the different components of the system:
+
+![Overview of system](elements-overview.png)
+
+This figure shows the steps to publish a trace location:
+
+![Publish Trace Location](trace-location.png) 
+
 ## Goal of the demo
 
 - Reference implementation of the description in the white paper
