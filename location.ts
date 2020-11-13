@@ -1,4 +1,3 @@
-import protobuf from "protobufjs";
 import {
     crypto_box_seal,
     crypto_hash_sha256,
@@ -13,6 +12,7 @@ import {HealthAuthorityBackend} from "./healthAuthorityBackend";
 import {QRCodeContent, QRCodeWrapper, SeedMessage} from "./protobuf/index";
 import {Log} from "./log";
 import {Internet} from "./internet";
+import {Message} from "protobufjs";
 
 /**
  * The Location class represents either a restaurant, a happening, or any other gathering of
@@ -27,7 +27,7 @@ export class Location {
     private salt: Uint8Array;
     private seedBuf: Uint8Array;
     private seed: Uint8Array;
-    private qrCodeContent: protobuf.Message;
+    private qrCodeContent: Message;
     private log: Log;
 
     constructor(

@@ -1,4 +1,4 @@
-import {QRCodeWrapper, IQRCodeContent, QRCodeContent} from "./protobuf/index";
+import {QRCodeWrapper, QRCodeContent} from "./protobuf/index";
 import { crypto_sign_verify_detached, from_base64 } from "./sodium";
 import { Visit } from "./visit";
 import { Log } from "./log";
@@ -33,7 +33,7 @@ export class Visitor {
     const qrBuf = from_base64(qrBase64);
     const wrapper = QRCodeWrapper.decode(qrBuf);
     const contentBuf = QRCodeContent.encode(QRCodeContent.create(wrapper.content)).finish();
-    const location: IQRCodeContent = wrapper.content;
+    const location: QRCodeContent = wrapper.content;
     if (
       !crypto_sign_verify_detached(
         wrapper.signature,

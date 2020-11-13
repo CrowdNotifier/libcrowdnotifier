@@ -1,6 +1,3 @@
-// Import stylesheets
-import "./style.css";
-
 import {
   crypto_box_keypair,
   crypto_scalarmult,

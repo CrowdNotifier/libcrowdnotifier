@@ -1,20 +1,44 @@
-import protobuf from "protobufjs";
+import {Message, Properties, Root} from "protobufjs";
 import qrMessage from "./qrMessage";
 import seedMessage from "./seedMessage";
 
-export interface IQRCodeContent {
-  version: number;
-  publicKey: Uint8Array;
-  name: string;
-  location: string;
-  room: string;
-  venueType: number;
-  notificationKey: Uint8Array;
+export class QRCodeContent extends Message<QRCodeContent> {
+    version: number;
+    publicKey: Uint8Array;
+    name: string;
+    location: string;
+    room: string;
+    venueType: number;
+    notificationKey: Uint8Array;
+
+    constructor(props?: Properties<QRCodeContent>) {
+        super(props);
+    }
 }
 
-const rootQr = protobuf.Root.fromJSON(qrMessage);
-export const QRCodeContent = rootQr.lookupType("qrpackage.QRCodeContent");
-export const QRCodeWrapper = rootQr.lookupType("qrpackage.QRCodeWrapper");
+export class QRCodeWrapper extends Message<QRCodeWrapper> {
+    fields: number;
+    content: QRCodeContent;
+    signature: Uint8Array;
 
-const rootSeed = protobuf.Root.fromJSON(seedMessage);
-export const SeedMessage = rootSeed.lookupType("seedpackage.SeedMessage");
+    constructor(props?: Properties<QRCodeWrapper>) {
+        super(props);
+    }
+}
+
+export class SeedMessage extends Message<SeedMessage> {
+    salt: Uint8Array;
+    notificationKey: Uint8Array;
+    name: string;
+    location: string;
+    room: string;
+
+    constructor(props?: Properties<QRCodeWrapper>) {
+        super(props);
+    }
+}
+
+
+Root.fromJSON(qrMessage).lookupType("qrpackage.QRCodeContent").ctor = QRCodeContent;
+Root.fromJSON(qrMessage).lookupType("qrpackage.QRCodeWrapper").ctor = QRCodeWrapper;
+Root.fromJSON(seedMessage).lookupType("seedpackage.SeedMessage").ctor = SeedMessage;

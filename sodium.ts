@@ -1,4 +1,4 @@
-import _sodium from "libsodium-wrappers-sumo";
+import * as _sodium from "libsodium-wrappers-sumo";
 
 export interface IKeyPair {
   keyType: string;

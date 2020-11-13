@@ -1,6 +1,3 @@
-// Write TypeScript code!
-const appDiv: HTMLElement = document.getElementById("app");
-appDiv.innerHTML = `<h1>TypeScript Starter</h1>`;
 
 let logStr = "";
 
@@ -9,12 +6,18 @@ let logStr = "";
  */
 export class Log {
   constructor(public name: string) {
-    this.name = name.padStart(25, " ") + " ";
+    this.name = name.padStart(30, " ") + " ";
   }
 
   info(...msgs) {
-    logStr += `${this.name}: ${msgs.join(" ")}\n`;
-    appDiv.innerHTML = `<pre>${logStr}</pre>`;
+    const newLine = `${this.name}: ${msgs.join(" ")}`
+    if (typeof(document) !== "undefined") {
+      const appDiv: HTMLElement = document.getElementById("app");
+      logStr += `${newLine}\n`;
+      appDiv.innerHTML = `<pre>${logStr}</pre>`;
+    } else {
+      console.log(newLine)
+    }
   }
 
   error(err: Error) {

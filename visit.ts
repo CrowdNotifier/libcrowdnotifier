@@ -1,6 +1,6 @@
-import protobuf from "protobufjs";
+import {Message} from "protobufjs";
 import { ITrace } from "./crowdbackend";
-import { IQRCodeContent } from "./protobuf/index";
+import { QRCodeContent } from "./protobuf/index";
 import {
   buf_equals,
   crypto_box_seal,
@@ -25,7 +25,7 @@ export class Visit {
   private log: Log;
 
   constructor(
-    qr: protobuf.Message<IQRCodeContent>,
+    qr: QRCodeContent,
     entry: number,
     departure: number,
     diary?: boolean
