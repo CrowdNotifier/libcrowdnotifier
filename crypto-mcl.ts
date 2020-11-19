@@ -161,7 +161,7 @@ export class Section7{
             return undefined;
         }
         try {
-            const k = mcl.xor(rec.K, mcl.pairing(tr, rec.R2).serialize());
+            const k = mcl.xor(rec.K, mcl.hashT(mcl.pairing(tr, rec.R2)));
             const aux = crypto_secretbox_open_easy(rec.c, rec.nonce, k);
             return to_string(aux);
         } catch(e){

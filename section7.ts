@@ -38,11 +38,8 @@ async function main(){
     const trace1_3 = Section7.genTrace(HealthAuthority.privateKey, counter1+1, preTrace1_3);
 
     log.info("Checking if user1 gets correctly notified");
-    log.info("Should fail");
     log.assert(Section7.match(user1, trace1_1) === undefined, "Shouldn't match counter-1");
-    log.info("Should match");
     log.assert(Section7.match(user1, trace1_2) === user1Aux, "Should match counter");
-    log.info("Should fail");
     log.assert(Section7.match(user1, trace1_3) === undefined, "Shouldn't match counter+1");
 
     log.info("Checking if user2 gets correctly NOT notified");
