@@ -1,18 +1,9 @@
-import {
-    crypto_box_seal,
-    crypto_hash_sha256,
-    crypto_secretbox_keygen,
-    crypto_sign_detached,
-    crypto_sign_seed_keypair,
-    IKeyPair,
-    randombytes_buf,
-    to_base64
-} from "./sodium";
 import {HealthAuthorityBackend} from "./healthAuthorityBackend";
-import {QRCodeContent, QRCodeWrapper, SeedMessage} from "./protobuf/index";
+import {QRCodeContent, QRCodeWrapper} from "./protobuf/index";
 import {Log} from "./log";
 import {Internet} from "./internet";
 import {Message} from "protobufjs";
+import {CryptoLocation, to_base64} from "./crypto";
 
 /**
  * The Location class represents either a restaurant, a happening, or any other gathering of
@@ -22,13 +13,9 @@ import {Message} from "protobufjs";
  * Furthermore it has methods to interact with the cantonal doctor.
  */
 export class Location {
-    public keypair: IKeyPair;
-    private notificationKey: Uint8Array;
-    private salt: Uint8Array;
-    private seedBuf: Uint8Array;
-    private seed: Uint8Array;
     private qrCodeContent: Message;
     private log: Log;
+    private crypto: CryptoLocation;
 
     constructor(
         private internet: Internet,
@@ -39,27 +26,16 @@ export class Location {
         public locType: number,
         public healthAuthorityPubKey: Uint8Array
     ) {
-        this.salt = randombytes_buf(32);
-        this.notificationKey = crypto_secretbox_keygen();
-        const seedMessage = SeedMessage.create({
-            salt: this.salt,
-            notificationKey: this.notificationKey,
-            name: name,
-            location: location,
-            room: room
-        });
-        this.seedBuf = SeedMessage.encode(seedMessage).finish();
-        this.seed = crypto_hash_sha256(this.seedBuf);
-        this.keypair = crypto_sign_seed_keypair(this.seed);
+        this.crypto = new CryptoLocation(name, location, room)
 
         this.qrCodeContent = QRCodeContent.create({
             version: 1,
-            publicKey: this.keypair.publicKey,
+            publicKey: this.crypto.keyPair.publicKey,
             name: name,
             location: location,
             room: room,
             venueType: locType,
-            notificationKey: this.notificationKey
+            notificationKey: this.crypto.notificationKey
         });
 
         this.log = new Log(`Location{${name}:${location}}`);
@@ -70,15 +46,11 @@ export class Location {
      * The QRentry code is printed and shown at the entrance to all visitors.
      */
     QRentry(): string {
-        const qrCodeContentSignature = crypto_sign_detached(
-            QRCodeContent.encode(this.qrCodeContent).finish(),
-            this.keypair.privateKey
-        );
-
+        const signature = this.crypto.getQRentrySignature(QRCodeContent.encode(this.qrCodeContent).finish());
         const qrCodeWrapper = QRCodeWrapper.create({
             version: 1,
             content: this.qrCodeContent,
-            signature: qrCodeContentSignature
+            signature
         });
 
         const qrCodeWrapperProtoBufBytes = QRCodeWrapper.encode(
@@ -102,8 +74,7 @@ export class Location {
      * in case of a trace location event.
      */
     private QRtrack(): string {
-        const msg = crypto_box_seal(this.seedBuf, this.healthAuthorityPubKey);
-        const qrStr = to_base64(msg);
+        const qrStr = to_base64(this.crypto.getQRtrack(this.healthAuthorityPubKey));
         this.log.info("QRTrack:", qrStr);
         return qrStr;
     }
