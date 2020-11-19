@@ -87,8 +87,20 @@ All other interactions are user interactions like entering a code or scanning a 
 This reference implementation is just to show how the pieces fit together from a programmers' perspective.
 The following steps are in the pipeline:
 
-- separate the crypto in its own package
+- separate the crypto in its own package - done
+- implement latest changes in CrowdNotifier white paper - started
 - use it as a web-app
+
+# Section 7
+
+The section 7 of the new CrowdNotifier whitepaper uses some advanced crypto to avoid having
+to give the private key from the location owner to the health authority.
+
+Tu run the test case, do the following:
+```bash
+npm ci
+npm run section7
+```
 
 # Contributing
 

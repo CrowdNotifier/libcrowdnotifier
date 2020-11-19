@@ -18,6 +18,9 @@ export async function waitReady(){
     await sodiumWaitReady();
 }
 
+/**
+ * What needs to be stored in the users' phone.
+ */
 interface IUserRecord {
     R1: mcl.G2
     Z1: mcl.GT
@@ -27,6 +30,9 @@ interface IUserRecord {
     nonce: Uint8Array
 }
 
+/**
+ * This is the secret information of the location.
+ */
 interface IMasterTrace{
     mskv: mcl.Fr;
     info: string;
@@ -34,6 +40,9 @@ interface IMasterTrace{
     mskHAEnc: Uint8Array;
 }
 
+/**
+ * Things to print on QRcodes - the mtr part only needs to be used when an infection is signaled.
+ */
 interface ILocationData {
     // entry information
     ent: mcl.G2;
@@ -43,6 +52,10 @@ interface ILocationData {
     mtr: IMasterTrace;
 }
 
+/**
+ * The request from the health authority to the location owner to create a proof to be sent to
+ * the visitors.
+ */
 interface IPreTrace{
     Tprime: mcl.G1
     info: string
@@ -50,6 +63,9 @@ interface IPreTrace{
     ctxt: Uint8Array
 }
 
+/**
+ * Section7 implements the cryptographic protocol in section 7 of the CrowdNotifier whitepaper.
+ */
 export class Section7{
     /**
      * Setup for the HealthAuthority - returns a keypair that can be used to encrypt the QRtrack codes.

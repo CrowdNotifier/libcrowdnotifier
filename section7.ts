@@ -4,6 +4,10 @@ import {Log} from "./log";
 /**
  * Very simple crypto test for the section7 using the new BNS scheme to avoid having to
  * print new QRcodes after every infection.
+ *
+ * To run it, write:
+ *   npm ci
+ *   npm run section7
  */
 
 const log = new Log("main");
