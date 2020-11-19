@@ -1,4 +1,3 @@
-import {waitReady} from "./sodium";
 import {HealthAuthorityBackend} from "./healthAuthorityBackend";
 import {Visitor} from "./visitor";
 import {Location} from "./location";
@@ -6,6 +5,7 @@ import {CrowdBackend} from "./crowdbackend";
 import {HealthAuthority} from "./healthAuthority";
 import {Log} from "./log";
 import {Internet} from "./internet";
+import {waitReady} from "./crypto";
 
 /**
  * This shows a full run of the CrowdNotifier system with the different elements.

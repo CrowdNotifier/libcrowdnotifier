@@ -6,10 +6,12 @@
   "version": "0.1.0",
   "private": false,
   "scripts": {
-    "start": "ts-node index.ts"
+    "start": "ts-node index.ts",
+    "section7": "ts-node section7.ts"
   },
   "dependencies": {
     "libsodium-wrappers-sumo": "^0.7.8",
+    "mcl-wasm": "^0.7.1",
     "protobufjs": "^6.10.1"
   },
   "devDependencies": {

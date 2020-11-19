@@ -23,4 +23,10 @@ export class Log {
   error(err: Error) {
     this.info("Error:", err.toString());
   }
+
+  assert(bool: boolean, ...msgs){
+    if (!bool){
+      this.info("Assertion failed:", ...msgs)
+    }
+  }
 }

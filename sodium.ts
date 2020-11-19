@@ -50,6 +50,14 @@ export function crypto_secretbox_keygen(): Uint8Array {
   return _sodium.crypto_secretbox_keygen();
 }
 
+export function crypto_secretbox_easy(msg: Uint8Array, nonce: Uint8Array, key: Uint8Array): Uint8Array{
+  return _sodium.crypto_secretbox_easy(msg, nonce, key);
+}
+
+export function crypto_secretbox_open_easy(cipher: Uint8Array, nonce: Uint8Array, key: Uint8Array): Uint8Array{
+  return _sodium.crypto_secretbox_open_easy(cipher, nonce, key);
+}
+
 export function crypto_hash_sha256(msg: Uint8Array): Uint8Array {
   return _sodium.crypto_hash_sha256(msg);
 }

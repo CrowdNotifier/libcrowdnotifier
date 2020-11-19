@@ -3,16 +3,27 @@ import {
     crypto_box_keypair,
     crypto_box_seal,
     crypto_box_seal_open,
-    crypto_hash_sha256, crypto_scalarmult, crypto_scalarmult_base,
+    crypto_hash_sha256,
+    crypto_scalarmult,
+    crypto_scalarmult_base,
     crypto_secretbox_keygen,
-    crypto_sign_detached, crypto_sign_ed25519_pk_to_curve25519, crypto_sign_ed25519_sk_to_curve25519,
-    crypto_sign_seed_keypair, crypto_sign_verify_detached, from_string,
+    crypto_sign_detached,
+    crypto_sign_ed25519_pk_to_curve25519,
+    crypto_sign_ed25519_sk_to_curve25519,
+    crypto_sign_seed_keypair,
+    crypto_sign_verify_detached,
+    from_string,
     IKeyPair,
-    randombytes_buf, to_base64, to_string
+    randombytes_buf,
+    to_base64,
+    to_string,
+    waitReady
 } from "./sodium";
 import {QRCodeContent, QRCodeWrapper, SeedMessage} from "./protobuf";
 import {Log} from "./log";
 import {ITrace} from "./crowdbackend";
+
+export {waitReady};
 
 export class CryptoHealthAuthority {
     constructor(public keyPair = crypto_box_keypair()) {
@@ -50,7 +61,7 @@ export class CryptoLocation {
             seedMessage.salt, seedMessage.notificationKey);
     }
 
-    static verifyWrapper(wrapper: QRCodeWrapper): boolean{
+    static verifyWrapper(wrapper: QRCodeWrapper): boolean {
         const contentBuf = QRCodeContent.encode(QRCodeContent.create(wrapper.content)).finish();
         return crypto_sign_verify_detached(
             wrapper.signature,
