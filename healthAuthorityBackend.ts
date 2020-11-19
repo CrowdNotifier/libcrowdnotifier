@@ -12,6 +12,7 @@ import {
 import { CrowdBackend } from "./crowdbackend";
 import { Log } from "./log";
 import { Internet } from "./internet";
+import {CryptoHealthAuthority} from "./crypto";
 
 /**
  * The table definition of the database of the HealthAuthorityBackend.
@@ -34,7 +35,7 @@ export class HealthAuthorityBackend {
   static pathGetCrowdCode = "getCrowdCode";
   static pathPostCrowdCode = "crowdCode";
 
-  private kp: IKeyPair;
+  private crypto: CryptoHealthAuthority;
   private crowdCodes: ICrowdCode[] = [];
   private log: Log;
 
@@ -43,14 +44,14 @@ export class HealthAuthorityBackend {
     private urlCrowdNotifier,
     public host: string
   ) {
-    this.kp = crypto_box_keypair();
+    this.crypto = new CryptoHealthAuthority();
     this.log = new Log(`HABackend`);
     internet.register(new URL(host), this);
     this.log.info("Created");
   }
 
   pubKey(): Uint8Array {
-    return this.kp.publicKey;
+    return this.crypto.kp.publicKey;
   }
 
   private getCrowdCode(search: string): string {
@@ -69,6 +70,7 @@ export class HealthAuthorityBackend {
   private async useCrowdCode(search: string, qrTrack: string) {
     const crowdCode = new URLSearchParams(search).get("crowdCode");
     this.log.info("Using crowd code", qrTrack);
+
     const ccodeEntry = this.crowdCodes.find(
       cc => to_base64(cc.rand) === crowdCode
     );
@@ -78,27 +80,18 @@ export class HealthAuthorityBackend {
     if (ccodeEntry.used) {
       throw new Error("Already used CrowdCode");
     }
-
-    const msgBuf = crypto_box_seal_open(
-      from_base64(qrTrack),
-      this.kp.publicKey,
-      this.kp.privateKey
-    );
-    const msg = SeedMessage.decode(msgBuf);
-    const seed = crypto_hash_sha256(msgBuf);
-    const locationKeypair = crypto_sign_seed_keypair(seed);
-
-    // Wait for contactTracer to authorise the upload
-
     ccodeEntry.used = true;
-    const url = new URL(
-      `${this.urlCrowdNotifier}/${CrowdBackend.pathPostTrace}`
-    );
+
+    const location = this.crypto.decryptQRTrack(from_base64(qrTrack));
     const data = JSON.stringify({
-      privKey: locationKeypair.privateKey,
+      privKey: location.kp.privateKey,
       start: ccodeEntry.start,
       end: ccodeEntry.end
     });
+
+    const url = new URL(
+        `${this.urlCrowdNotifier}/${CrowdBackend.pathPostTrace}`
+    );
     return this.internet.post(url, data);
   }
 
