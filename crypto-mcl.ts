@@ -1,29 +1,17 @@
 import {
     waitReady as sodiumWaitReady,
-    buf_equals,
     crypto_box_keypair,
     crypto_box_seal,
     crypto_box_seal_open,
-    crypto_hash_sha256,
-    crypto_scalarmult,
     crypto_scalarmult_base,
     crypto_secretbox_keygen,
-    crypto_sign_detached,
-    crypto_sign_ed25519_pk_to_curve25519,
-    crypto_sign_ed25519_sk_to_curve25519,
-    crypto_sign_seed_keypair,
-    crypto_sign_verify_detached,
     from_string,
     IKeyPair,
     randombytes_buf,
     to_base64,
-    to_string, crypto_secretbox_easy, crypto_secretbox_open_easy
+    to_string, crypto_secretbox_easy, crypto_secretbox_open_easy, secretbox_nonce
 } from "./sodium";
 import * as mcl from "./mcl";
-import {QRCodeContent, QRCodeWrapper, SeedMessage} from "./protobuf";
-import {Log} from "./log";
-import {ITrace} from "./crowdbackend";
-import {hashAndMapToG1} from "./mcl";
 
 export async function waitReady(){
     await mcl.waitReady();
@@ -99,17 +87,16 @@ export class Section7{
      * @return user record to be stored
      */
     static scan(entry: mcl.G2, proofEntry: Uint8Array, info: string, counter: number, aux: string): IUserRecord{
-        const nonce = proofEntry;
-
         const r1 = new mcl.Fr();
         r1.setByCSPRNG();
         const r2 = new mcl.Fr();
         r2.setByCSPRNG();
         const k = crypto_secretbox_keygen();
+        const nonce = secretbox_nonce();
         const c = crypto_secretbox_easy(from_string(aux), nonce, k);
 
         const R1 = mcl.mul(mcl.baseG2(), r1);
-        const H1inc = this.infoNonceCounter(info, nonce, counter);
+        const H1inc = this.infoNonceCounter(info, proofEntry, counter);
         const Z1 = mcl.pairing(mcl.mul(H1inc, r1), entry);
         const R2 = mcl.mul(mcl.baseG2(), r2);
         const Z2 = mcl.pairing(mcl.mul(H1inc, r2), entry);

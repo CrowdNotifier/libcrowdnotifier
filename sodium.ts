@@ -38,6 +38,10 @@ export function buf_equals(a: Uint8Array, b: Uint8Array): boolean {
   return to_base64(a) === to_base64(b);
 }
 
+export function secretbox_nonce(): Uint8Array{
+  return _sodium.randombytes_buf(_sodium.crypto_secretbox_NONCEBYTES);
+}
+
 /**
  * crypto_* methods
  */

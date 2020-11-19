@@ -131,9 +131,8 @@ export function xor(a: Uint8Array, b: Uint8Array): Uint8Array {
         throw new Error("cannot xor two Uint8Arrays of different length");
     }
     const c = new Uint8Array(a.length);
-    c.set(a);
     for (let i = 0; i < a.length; i++) {
-        Atomics.xor(c, i, b[i]);
+        c[i] = a[i]^b[i];
     }
     return c;
 }
