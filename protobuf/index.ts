@@ -1,6 +1,7 @@
 import {Message, Properties, Root} from "protobufjs";
 import qrMessage from "./qrMessage";
 import seedMessage from "./seedMessage";
+import commitment from "./commitment";
 
 export class QRCodeContent extends Message<QRCodeContent> {
     version: number;
@@ -10,20 +11,12 @@ export class QRCodeContent extends Message<QRCodeContent> {
     room: string;
     venueType: number;
     notificationKey: Uint8Array;
-
-    constructor(props?: Properties<QRCodeContent>) {
-        super(props);
-    }
 }
 
 export class QRCodeWrapper extends Message<QRCodeWrapper> {
     fields: number;
     content: QRCodeContent;
     signature: Uint8Array;
-
-    constructor(props?: Properties<QRCodeWrapper>) {
-        super(props);
-    }
 }
 
 export class SeedMessage extends Message<SeedMessage> {
@@ -32,13 +25,15 @@ export class SeedMessage extends Message<SeedMessage> {
     name: string;
     location: string;
     room: string;
-
-    constructor(props?: Properties<QRCodeWrapper>) {
-        super(props);
-    }
 }
 
+export class CommitmentMessage extends Message<CommitmentMessage>{
+    info: string;
+    nonce: Uint8Array;
+    counter: number;
+}
 
 Root.fromJSON(qrMessage).lookupType("qrpackage.QRCodeContent").ctor = QRCodeContent;
 Root.fromJSON(qrMessage).lookupType("qrpackage.QRCodeWrapper").ctor = QRCodeWrapper;
 Root.fromJSON(seedMessage).lookupType("seedpackage.SeedMessage").ctor = SeedMessage;
+Root.fromJSON(commitment).lookupType("commitment.CommitmentMessage").ctor = CommitmentMessage;

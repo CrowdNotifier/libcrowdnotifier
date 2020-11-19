@@ -4,8 +4,6 @@ import {crypto_hash_sha256} from "./sodium";
 export function waitReady(): Promise<undefined> {
     return new Promise((resolve) => {
         mcl.init(mcl.BLS12_381).then(() => {
-            console.log("BLS12_381 initialized");
-
             resolve();
         })
     });
@@ -51,7 +49,7 @@ export function pairing(g1: G1, g2: G2): GT {
 }
 
 export class G1 {
-    constructor(public mclG1 = mcl.deserializeHexStrToG1("00")) {
+    constructor(public mclG1 = new mcl.G1()) {
     }
 
     serialize(): Uint8Array {

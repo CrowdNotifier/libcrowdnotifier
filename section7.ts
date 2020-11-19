@@ -37,9 +37,12 @@ async function main(){
     const preTrace1_1 = Section7.genPreTrace(location1.mtr, counter1-1);
     const preTrace1_2 = Section7.genPreTrace(location1.mtr, counter1);
     const preTrace1_3 = Section7.genPreTrace(location1.mtr, counter1+1);
-    const trace1_1 = Section7.genTrace(HealthAuthority.privateKey, counter1-1, preTrace1_1);
-    const trace1_2 = Section7.genTrace(HealthAuthority.privateKey, counter1, preTrace1_2);
-    const trace1_3 = Section7.genTrace(HealthAuthority.privateKey, counter1+1, preTrace1_3);
+    const trace1_1 = Section7.genTrace(HealthAuthority, counter1-1, preTrace1_1);
+    const trace1_2 = Section7.genTrace(HealthAuthority, counter1, preTrace1_2);
+    const trace1_3 = Section7.genTrace(HealthAuthority, counter1+1, preTrace1_3);
+    if (trace1_1 === undefined || trace1_2 === undefined || trace1_3 === undefined){
+        throw new Error("Couldn't create the traces");
+    }
 
     log.info("Checking if user1 gets correctly notified");
     log.assert(Section7.match(user1, trace1_1) === undefined, "Shouldn't match counter-1");
