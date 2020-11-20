@@ -6,8 +6,7 @@
   "version": "0.1.0",
   "private": false,
   "scripts": {
-    "start": "ts-node index.ts",
-    "section7": "ts-node section7.ts"
+    "start": "npx ts-node v2/crypto.spec.ts; npx ts-node v2/system.spec.ts"
   },
   "dependencies": {
     "libsodium-wrappers-sumo": "^0.7.8",

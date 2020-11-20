@@ -1,19 +1,7 @@
-import {CrowdBackend} from "./crowdbackend";
-import {Log} from "./log";
-import {Internet} from "./internet";
-import {CryptoHealthAuthority, from_base64, randombytes_buf, to_base64} from "./crypto";
-
-/**
- * The table definition of the database of the HealthAuthorityBackend.
- */
-interface ICrowdCode {
-    rand: Uint8Array;
-    name: string;
-    location: string;
-    start: number;
-    end: number;
-    used?: boolean;
-}
+import {CrowdBackend} from "app/crowdbackend";
+import {Log} from "lib/log";
+import {Internet} from "app/internet";
+import {CryptoHealthAuthority, from_base64, randombytes_buf, to_base64} from "lib/crypto";
 
 /**
  * The HealthAuthorityBackend makes sure that only assigned health authorities can publish
@@ -22,10 +10,9 @@ interface ICrowdCode {
  */
 export class HealthAuthorityBackend {
     static pathGetCrowdCode = "getCrowdCode";
-    static pathPostCrowdCode = "crowdCode";
+    static pathPostPreTrace = "preTrace";
 
     private crypto: CryptoHealthAuthority;
-    private crowdCodes: ICrowdCode[] = [];
     private log: Log;
 
     constructor(
@@ -53,8 +40,8 @@ export class HealthAuthorityBackend {
 
     async Post(path: string, search: string, data: string): Promise<string> {
         switch (path) {
-            case HealthAuthorityBackend.pathPostCrowdCode:
-                return this.useCrowdCode(search, data);
+            case HealthAuthorityBackend.pathPostPreTrace:
+                return this.preTrace(search, data);
         }
         throw new Error("Path not found");
     }
@@ -68,31 +55,15 @@ export class HealthAuthorityBackend {
             parseInt(url.get("end"))
         ];
         const rand = randombytes_buf(32);
-        this.crowdCodes.push({rand, name, location, start, end});
+        this.crypto.addCrowdCodes({rand, name, location, start, end});
         return to_base64(rand);
     }
 
-    private async useCrowdCode(search: string, qrTrack: string) {
+    private async preTrace(search: string, preTrace: string) {
         const crowdCode = new URLSearchParams(search).get("crowdCode");
-        this.log.info("Using crowd code", qrTrack);
+        this.log.info("Using pre-trace", crowdCode, preTrace);
 
-        const ccodeEntry = this.crowdCodes.find(
-            cc => to_base64(cc.rand) === crowdCode
-        );
-        if (ccodeEntry === undefined) {
-            throw new Error("Invalid CrowdCode");
-        }
-        if (ccodeEntry.used) {
-            throw new Error("Already used CrowdCode");
-        }
-        ccodeEntry.used = true;
-
-        const location = this.crypto.decryptQRTrack(from_base64(qrTrack));
-        const data = JSON.stringify({
-            privKey: location.keyPair.privateKey,
-            start: ccodeEntry.start,
-            end: ccodeEntry.end
-        });
+        const data = this.crypto.createTraceEntry(preTrace, crowdCode);
 
         const url = new URL(
             `${this.urlCrowdNotifier}/${CrowdBackend.pathPostTrace}`

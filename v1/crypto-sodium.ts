@@ -18,41 +18,89 @@ import {
     to_base64,
     to_string,
     waitReady
-} from "./sodium";
-import {QRCodeContent, QRCodeWrapper, SeedMessage} from "./protobuf";
-import {Log} from "./log";
-import {ITrace} from "./crowdbackend";
+} from "lib/sodium";
+import {QRCodeContent, QRCodeWrapper, SeedMessage} from "protobuf";
+import {Log} from "lib/log";
+import {ITrace} from "app/crowdbackend";
 
 export {waitReady};
 
+/**
+ * The table definition of the database of the HealthAuthorityBackend.
+ */
+interface ICrowdCode {
+    rand: Uint8Array;
+    name: string;
+    location: string;
+    start: number;
+    end: number;
+    used?: boolean;
+}
+
 export class CryptoHealthAuthority {
+    public crowdCodes: ICrowdCode[] = [];
+
     constructor(public keyPair = crypto_box_keypair()) {
     }
 
-    decryptQRTrack(qrTrack: Uint8Array): CryptoLocation {
-        const seedMsg = crypto_box_seal_open(
+    createTraceEntry(qrTrack: Uint8Array, count?: number, ptr?: any): string {
+        const ccodeEntry = this.crowdCodes.find(
+            cc => to_base64(cc.rand) === preTrace
+        );
+        if (ccodeEntry === undefined) {
+            throw new Error("Invalid CrowdCode");
+        }
+        if (ccodeEntry.used) {
+            throw new Error("Already used CrowdCode");
+        }
+        ccodeEntry.used = true;
+
+        const seedMsgBuf = crypto_box_seal_open(
             qrTrack,
             this.keyPair.publicKey,
             this.keyPair.privateKey
         );
-        return CryptoLocation.fromSeedMsgBuf(seedMsg);
+        const seedMessage = SeedMessage.decode(seedMsgBuf);
+        return "";
+    }
+
+    addCrowdCodes(icc: ICrowdCode){
+        this.crowdCodes.push(icc);
     }
 }
 
 export class CryptoLocation {
     public keyPair: IKeyPair;
     public seedBuf: Uint8Array;
+    private salt = randombytes_buf(32);
+    public notificationKey = crypto_secretbox_keygen();
+    private qrCodeContent: QRCodeContent;
 
-    constructor(name: string, location: string, room: string,
-                salt = randombytes_buf(32),
-                public notificationKey = crypto_secretbox_keygen()) {
+    constructor(healthAuthorityPubKey: Uint8Array,
+                locType: number, name: string, location: string, room: string) {
         const seedMessage = SeedMessage.create({
-            salt, notificationKey,
+            salt: this.salt, notificationKey: this.notificationKey,
             name, location, room
         })
         this.seedBuf = SeedMessage.encode(seedMessage).finish();
         const seed = crypto_hash_sha256(this.seedBuf);
         this.keyPair = crypto_sign_seed_keypair(seed);
+
+        this.qrCodeContent = new QRCodeContent({
+            version: 1,
+            publicKey: this.keyPair.publicKey,
+            name: name,
+            location: location,
+            room: room,
+            venueType: locType,
+            notificationKey: this.notificationKey
+        });
+
+        const wrapper = QRCodeWrapper.decode(qrBuf);
+        const location: QRCodeContent = wrapper.content;
+        if (!CryptoLocation.verifyWrapper(wrapper)) {
+            throw new Error("Location QRCode not correct");
+        }
     }
 
     static fromSeedMsgBuf(buf: Uint8Array): CryptoLocation {
@@ -70,14 +118,23 @@ export class CryptoLocation {
         )
     }
 
-    getQRtrack(healthAuthorityPubKey: Uint8Array): Uint8Array {
+    getQRtrace(healthAuthorityPubKey: Uint8Array): Uint8Array {
         return crypto_box_seal(this.seedBuf, healthAuthorityPubKey);
     }
 
-    getQRentrySignature(content: Uint8Array): Uint8Array {
-        return crypto_sign_detached(
+    getQRentry(content: Uint8Array): Uint8Array {
+        const signature = crypto_sign_detached(
             content, this.keyPair.privateKey
         );
+        const qrCodeWrapper = QRCodeWrapper.create({
+            version: 1,
+            content: this.qrCodeContent,
+            signature
+        });
+
+        return QRCodeWrapper.encode(
+            qrCodeWrapper
+        ).finish();
     }
 }
 

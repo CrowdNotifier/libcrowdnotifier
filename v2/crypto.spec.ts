@@ -1,5 +1,5 @@
-import {Section7, waitReady} from "./crypto-mcl";
-import {Log} from "./log";
+import {Section7, waitReady} from "./crypto";
+import {Log} from "../lib/log";
 
 /**
  * Very simple crypto test for the section7 using the new BNS scheme to avoid having to
@@ -10,9 +10,8 @@ import {Log} from "./log";
  *   npm run section7
  */
 
-const log = new Log("main");
+const log = new Log("crypto-mcl.spec");
 log.info(`Starting at: ${new Date()}`);
-
 
 async function main(){
     await waitReady();
@@ -33,10 +32,11 @@ async function main(){
     const user2Aux = "PARTY!";
     const user2 = Section7.scan(location2.ent, location2.pEnt, infoLocation2, counter2, user2Aux);
 
-    log.info("Location 1 got infected during three hours - creating traces");
+    log.info("Location 1 got infected during three hours - creating pre-traces");
     const preTrace1_1 = Section7.genPreTrace(location1.mtr, counter1-1);
     const preTrace1_2 = Section7.genPreTrace(location1.mtr, counter1);
     const preTrace1_3 = Section7.genPreTrace(location1.mtr, counter1+1);
+    log.info("Creating traces from health authority")
     const trace1_1 = Section7.genTrace(HealthAuthority, counter1-1, preTrace1_1);
     const trace1_2 = Section7.genTrace(HealthAuthority, counter1, preTrace1_2);
     const trace1_3 = Section7.genTrace(HealthAuthority, counter1+1, preTrace1_3);
@@ -53,6 +53,8 @@ async function main(){
     log.assert(Section7.match(user2, trace1_1) === undefined, "Shouldn't match user2");
     log.assert(Section7.match(user2, trace1_2) === undefined, "Shouldn't match user2");
     log.assert(Section7.match(user2, trace1_3) === undefined, "Shouldn't match user2");
+
+    log.info("Crypto spec successfully finished!");
 }
 
 main().catch(e => {

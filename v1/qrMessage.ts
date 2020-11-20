@@ -60,7 +60,7 @@ export default {
               id: 2
             },
             signature: {
-              rule: "required",
+              rule: "optional",
               type: "bytes",
               id: 3
             }

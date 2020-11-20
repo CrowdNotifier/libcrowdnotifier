@@ -8,12 +8,12 @@ import {
     from_string,
     IKeyPair,
     randombytes_buf,
-    secretbox_nonce,
+    secretbox_nonce, to_base64,
     to_string,
     waitReady as sodiumWaitReady
-} from "./sodium";
-import * as mcl from "./mcl";
-import {CommitmentMessage} from "./protobuf";
+} from "../lib/sodium";
+import * as mcl from "../lib/mcl";
+import {Commitment} from "./proto";
 
 export async function waitReady() {
     await mcl.waitReady();
@@ -23,7 +23,7 @@ export async function waitReady() {
 /**
  * What needs to be stored in the users' phone.
  */
-interface IUserRecord {
+export interface IUserRecord {
     R1: mcl.G2
     Z1: mcl.GT
     R2: mcl.G2
@@ -35,7 +35,7 @@ interface IUserRecord {
 /**
  * This is the secret information of the location.
  */
-interface IMasterTrace {
+export interface IMasterTrace {
     mskv: mcl.Fr;
     info: string;
     nonce: Uint8Array;
@@ -45,7 +45,7 @@ interface IMasterTrace {
 /**
  * Things to print on QRcodes - the mtr part only needs to be used when an infection is signaled.
  */
-interface ILocationData {
+export interface ILocationData {
     // entry information
     ent: mcl.G2;
     // proof for the entry information
@@ -58,7 +58,7 @@ interface ILocationData {
  * The request from the health authority to the location owner to create a proof to be sent to
  * the visitors.
  */
-interface IPreTrace {
+export interface IPreTrace {
     Tprime: mcl.G1
     info: string
     nonce: Uint8Array
@@ -133,7 +133,7 @@ export class Section7 {
      * @param counter
      */
     static infoNonceCounter(info: string, nonce: Uint8Array, counter: number): mcl.G1 {
-        const buf = CommitmentMessage.encode(CommitmentMessage.create({
+        const buf = Commitment.encode(Commitment.create({
             info, nonce, counter
         })).finish();
         return mcl.hashAndMapToG1(buf);
@@ -195,4 +195,3 @@ export class Section7 {
         }
     }
 }
-

@@ -1,4 +1,4 @@
-import { Log } from "./log";
+import { Log } from "lib/log";
 
 export interface IServer {
   Get(path: string, search: string): Promise<string>;

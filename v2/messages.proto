@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package crowdnotifier_v2;
+
+message QRCodeTrace {
+  uint32 version = 1;
+  MasterTrace mtr = 2;
+}
+
+message QRCodeEntry {
+  uint32 version = 1;
+  LocationData data = 2;
+}
+
+message LocationData {
+  bytes ent = 1;
+  bytes pEnt = 2;
+  MasterTrace mtr = 3;
+}
+
+message MasterTrace {
+  bytes mskv = 1;
+  string info = 2;
+  bytes nonce = 3;
+  bytes mskHAEnc = 4;
+}
+
+message Commitment {
+  string info = 1;
+  bytes nonce = 2;
+  uint32 counter = 3;
+}
+
+message PreTrace {
+    bytes Tprime = 1;
+    string info = 2;
+    bytes nonce = 3;
+    bytes ctxt = 4;
+}

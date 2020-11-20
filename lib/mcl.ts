@@ -56,6 +56,10 @@ export class G1 {
         return this.mclG1.serialize();
     }
 
+    deserialize(buf: Uint8Array){
+        this.mclG1.deserialize(buf);
+    }
+
     isEqual(other: G1): boolean{
         return this.mclG1.isEqual(other.mclG1);
     }
@@ -69,6 +73,10 @@ export class G2 {
         return this.mclG2.serialize();
     }
 
+    deserialize(buf: Uint8Array){
+        this.mclG2.deserialize(buf);
+    }
+
     isEqual(other: G2): boolean{
         return this.mclG2.isEqual(other.mclG2);
     }
@@ -80,6 +88,10 @@ export class GT {
 
     serialize(): Uint8Array {
         return this.mclGT.serialize();
+    }
+
+    deserialize(buf: Uint8Array){
+        this.mclGT.deserialize(buf);
     }
 
     isEqual(other: GT): boolean{

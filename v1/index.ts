@@ -1,7 +1,7 @@
 import {Message, Properties, Root} from "protobufjs";
-import qrMessage from "./qrMessage";
-import seedMessage from "./seedMessage";
-import commitment from "./commitment";
+import qrMessage from "v1/qrMessage";
+import seedMessage from "v1/seedMessage";
+import commitment from "v1/commitment";
 
 export class QRCodeContent extends Message<QRCodeContent> {
     version: number;

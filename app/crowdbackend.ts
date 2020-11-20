@@ -1,5 +1,5 @@
-import { Internet } from "./internet";
-import { Log } from "./log";
+import { Internet } from "app/internet";
+import { Log } from "lib/log";
 
 export interface ITrace {
   privKey: Uint8Array;
