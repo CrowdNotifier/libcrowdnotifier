@@ -159,7 +159,7 @@ export class Visit {
             mtr
         };
         this.data = Section7.scan(locationData.ent, locationData.pEnt, locationData.mtr.info,
-            entry / 3600, diary ? locationData.mtr.info : "anonymous");
+            entry, diary ? locationData.mtr.info : "anonymous");
     }
 
     /**

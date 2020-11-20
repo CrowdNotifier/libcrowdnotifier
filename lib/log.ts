@@ -26,7 +26,7 @@ export class Log {
 
   assert(bool: boolean, ...msgs){
     if (!bool){
-      this.info("Assertion failed:", ...msgs)
+      throw new Error("Assertion failed:" + [...msgs].join(":"))
     }
   }
 }
