@@ -1,14 +1,14 @@
 import {
     crypto_box_keypair,
     crypto_box_seal,
-    crypto_box_seal_open,
+    crypto_box_seal_open, crypto_hash_sha256,
     crypto_secretbox_easy,
     crypto_secretbox_keygen,
     crypto_secretbox_open_easy,
     from_string,
     IKeyPair,
     randombytes_buf,
-    secretbox_nonce, to_base64,
+    secretbox_nonce,
     to_string,
     waitReady as sodiumWaitReady
 } from "../lib/sodium";
@@ -88,7 +88,7 @@ export class Section7 {
         const mskHA = new mcl.Fr();
         mskHA.setByCSPRNG();
         const msk = mcl.add(mskv, mskHA);
-        const mpk = mcl.mul(mcl.baseG2(), msk);
+        const mpk = mcl.mul(Helpers.baseG2(), msk);
         const nonce = randombytes_buf(msk.serialize().byteLength * 2);
         const mskHAEnc = crypto_box_seal(mskHA.serialize(), pkH);
         const mtr = {mskv, info, nonce, mskHAEnc}
@@ -116,12 +116,12 @@ export class Section7 {
         const ctxt_nonce = secretbox_nonce();
         const c = crypto_secretbox_easy(from_string(aux), ctxt_nonce, k);
 
-        const R1 = mcl.mul(mcl.baseG2(), r1);
+        const R1 = mcl.mul(Helpers.baseG2(), r1);
         const H1inc = this.infoNonceCounter(info, nonce, cnt);
         const Z1 = mcl.pairing(mcl.mul(H1inc, r1), mpk);
-        const R2 = mcl.mul(mcl.baseG2(), r2);
+        const R2 = mcl.mul(Helpers.baseG2(), r2);
         const Z2 = mcl.pairing(mcl.mul(H1inc, r2), mpk);
-        const K = mcl.xor(k, mcl.hashT(Z2));
+        const K = Helpers.xor(k, Helpers.hashT(Z2));
 
         return {R1, Z1, R2, K, c, ctxt_nonce};
     }
@@ -185,7 +185,7 @@ export class Section7 {
             return undefined;
         }
         try {
-            const k = mcl.xor(rec.K, mcl.hashT(mcl.pairing(tr, rec.R2)));
+            const k = Helpers.xor(rec.K, Helpers.hashT(mcl.pairing(tr, rec.R2)));
             // If the decryption fails, it throws an error.
             const aux = crypto_secretbox_open_easy(rec.c, rec.ctxt_nonce, k);
             return to_string(aux);
@@ -193,5 +193,39 @@ export class Section7 {
             console.log("couldn't decrypt: " + e);
             return undefined;
         }
+    }
+}
+
+/**
+ * New methods and definitions
+ */
+class Helpers {
+    // from https://github.com/zcash/librustzcash/blob/6e0364cd42a2b3d2b958a54771ef51a8db79dd29/pairing/src/bls12_381/README.md#generators
+    static baseG1(): mcl.G1 {
+        const base = new mcl.G1();
+        base.mclG1.setStr('1 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507 1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569')
+        return base;
+    }
+
+    // from https://github.com/zcash/librustzcash/blob/6e0364cd42a2b3d2b958a54771ef51a8db79dd29/pairing/src/bls12_381/README.md#generators
+    static baseG2(): mcl.G2 {
+        const base = new mcl.G2();
+        base.mclG2.setStr('1 352701069587466618187139116011060144890029952792775240219908644239793785735715026873347600343865175952761926303160 3059144344244213709971259814753781636986470325476647558659373206291635324768958432433509563104347017837885763365758 1985150602287291935568054521177171638300868978215655730859378665066344726373823718423869104263333984641494340347905 927553665492332455747201965776037880757740193453592970025027978793976877002675564980949289727957565575433344219582')
+        return base;
+    }
+
+    static hashT(gt: mcl.GT): Uint8Array {
+        return crypto_hash_sha256(gt.serialize());
+    }
+
+    static xor(a: Uint8Array, b: Uint8Array): Uint8Array {
+        if (a.length !== b.length) {
+            throw new Error("cannot xor two Uint8Arrays of different length");
+        }
+        const c = new Uint8Array(a.length);
+        for (let i = 0; i < a.length; i++) {
+            c[i] = a[i]^b[i];
+        }
+        return c;
     }
 }
