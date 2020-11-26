@@ -10,7 +10,7 @@ import {Log} from "../lib/log";
  *   npm run section7
  */
 
-const log = new Log("crypto-mcl.spec");
+const log = new Log("v2/crypto.spec");
 log.info(`Starting at: ${new Date()}`);
 
 async function main(){

@@ -2,7 +2,7 @@ import {Log} from "../lib/log";
 import {waitReady} from "./crypto";
 import {HealthAuthority, Location, Visit} from "./system";
 
-const log = new Log("v2/system.spec");
+const log = new Log("v1_1/system.spec");
 log.info(`Starting at: ${new Date()}`);
 
 async function main() {
@@ -13,10 +13,10 @@ async function main() {
     const urlTrace = "app:trace";
     const healthAuthority = new HealthAuthority();
     const location1 = new Location(healthAuthority.keyPair.publicKey,
-        1, "FooBar", "Lausanne", "any");
+        "FooBar", "Lausanne", "any", 1);
     const location1qrTrace = location1.getQRtrace(urlTrace);
     const location2 = new Location(healthAuthority.keyPair.publicKey,
-        2, "BarMitzva", "Lausanne", "unknown");
+        "BarMitzva", "Lausanne", "unknown", 2);
     const location2qrTrace = location2.getQRtrace(urlTrace);
 
     log.info("Creating two visits");
@@ -26,22 +26,19 @@ async function main() {
     const counter2 = 1001;
     const visit2 = new Visit(location2.getQRentry(urlEntry), counter2, counter2, true);
 
-    log.info("Location 1 got infected during three hours - creating pre-traces");
-    const preTrace1_1 = Location.preTrace(location1qrTrace, (counter1-1).toString());
-    const preTrace1_2 = Location.preTrace(location1qrTrace, (counter1).toString());
-    const preTrace1_3 = Location.preTrace(location1qrTrace, (counter1+1).toString());
     log.info("Location 1 got infected during three hours - creating traces");
-    const trace1_1 = healthAuthority.createTraceEntry(preTrace1_1, (counter1-1).toString());
-    const trace1_2 = healthAuthority.createTraceEntry(preTrace1_2, (counter1).toString());
-    const trace1_3 = healthAuthority.createTraceEntry(preTrace1_3, (counter1+1).toString());
+    const info1 = location1.infoStr();
+    const trace1_1 = healthAuthority.createTrace(location1qrTrace, info1, counter1-1, counter1-1);
+    const trace1_2 = healthAuthority.createTrace(location1qrTrace, info1, counter1, counter1);
+    const trace1_3 = healthAuthority.createTrace(location1qrTrace, info1, counter1+1, counter1+1);
     if (trace1_1 === undefined || trace1_2 === undefined || trace1_3 === undefined){
         throw new Error("Couldn't create the traces");
     }
 
     log.info("Checking if visit1 gets correctly notified");
-    log.assert(!visit1.verifyExposure([trace1_1]), "Shouldn't match counter-1");
-    log.assert(visit1.verifyExposure([trace1_2]), "Should match counter");
-    log.assert(!visit1.verifyExposure([trace1_3]), "Shouldn't match counter+1");
+    log.assert(visit1.verifyExposure([trace1_1])===undefined, "Shouldn't match counter-1");
+    log.assert(visit1.verifyExposure([trace1_2]) !== info1, "Should match counter");
+    log.assert(visit1.verifyExposure([trace1_3])===undefined, "Shouldn't match counter-1");
 
     log.info("Checking if visit2 gets correctly NOT notified");
     log.assert(!visit2.verifyExposure([trace1_1]), "Shouldn't match visit2");
@@ -53,4 +50,5 @@ async function main() {
 
 main().catch(e => {
     log.error(e);
+    console.log(e);
 });

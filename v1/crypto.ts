@@ -46,6 +46,10 @@ export interface IVisit {
     day: number;
 }
 
+/**
+ * This structure is as described in the chapter 4 of the white paper
+ *   CrowdNotifier: attack model, formalization and properties November 26, 2020
+ */
 export class CryptoV1 {
     static setupHA(): IKeyPair {
         return crypto_box_keypair();
@@ -83,11 +87,11 @@ export class CryptoV1 {
         return {ephemeralPublicKey, sharedKey, ciphertext, day};
     }
 
-    static verifyTrace(){
+    static verifyTrace() {
         throw new Error("does not exist");
     }
 
-    static match(visit: IVisit, exposure: ITrace): (undefined|string){
+    static match(visit: IVisit, exposure: ITrace): (undefined | string) {
         exposure.privKey = Uint8Array.from(Object.values(exposure.privKey));
         const scalar = crypto_sign_ed25519_sk_to_curve25519(exposure.privKey);
         const diffieHellman = crypto_scalarmult(scalar, visit.ephemeralPublicKey);

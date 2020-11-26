@@ -68,8 +68,10 @@ This figure shows the steps to publish a trace location:
 ## Directories
 
 - lib - types of mcl and sodium libraries
+- v1 - first crypto implementation early November 2020
+- v1_1 - improved crypto implementation without switching ed25519/curve25519,
+according to the white paper from the 26th of November 2020
 - v2 - latest changes in crowdNotifier - section7
-- v1 - DEFUNCT - partially previous crypto implementation
 - app - DEFUNCT - the previous app all in one
 
 ## Starting the tests
