@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "outDir": "build/",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "baseUrl": "."
   }
 }

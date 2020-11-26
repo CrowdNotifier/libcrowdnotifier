@@ -1,4 +1,4 @@
-import {ILocationData, Section7, IUserRecord} from "./crypto";
+import {ILocationData, IUserRecord, Section7} from "./crypto";
 import {from_base64, to_base64} from "../lib/sodium";
 import * as mcl from "../lib/mcl";
 import {LocationData, MasterTrace, PreTrace, QRCodeEntry, QRCodeTrace} from "./proto";
@@ -81,15 +81,6 @@ export class Location {
         return to_base64(PreTrace.encode(preTraceProto).finish());
     }
 
-    private protoMTR(): MasterTrace{
-        return new MasterTrace({
-            mskv: this.data.mtr.mskv.serialize(),
-            info: this.data.mtr.info,
-            nonce: this.data.mtr.nonce,
-            mskHAEnc: this.data.mtr.mskHAEnc,
-        });
-    }
-
     /**
      * Returns the base64 encoded protobuf-message for the location owner.
      *
@@ -119,6 +110,15 @@ export class Location {
             version: 2, data
         });
         return `${baseURL}#${to_base64(QRCodeEntry.encode(qrEntry).finish())}`;
+    }
+
+    private protoMTR(): MasterTrace {
+        return new MasterTrace({
+            mskv: this.data.mtr.mskv.serialize(),
+            info: this.data.mtr.info,
+            nonce: this.data.mtr.nonce,
+            mskHAEnc: this.data.mtr.mskHAEnc,
+        });
     }
 }
 
