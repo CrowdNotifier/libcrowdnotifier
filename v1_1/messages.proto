@@ -2,17 +2,27 @@ syntax = "proto3";
 
 package crowdnotifier_v1_1;
 
-message VenueType{}
+message LocationInfo{
+  int32 version = 1;
+  string name = 2;
+  string location = 3;
+  string room = 4;
+  enum VenueType {
+    RESTAURANT = 0;
+    BAR = 1;
+    CINEMA = 2;
+    SCHOOL = 3;
+    PRIVATE = 4;
+  }
+  VenueType venueType = 5;
+  bytes notificationKey = 6;
+}
 
 message QRCodeContent{
   int32 version = 1;
   bytes publicKey = 2;
-  string name = 3;
-  string location = 4;
-  string room = 5;
-  VenueType venueType = 6;
-  bytes notificationKey = 7;
-  bytes pEnt = 8;
+  bytes pEnt = 3;
+  LocationInfo info = 4;
 }
 
 message QRCodeTrace{
@@ -21,5 +31,5 @@ message QRCodeTrace{
   bytes trR2 = 3;
   bytes pTrR1 = 4;
   bytes pTrR2 = 5;
-  string info = 6;
+  LocationInfo info = 6;
 }

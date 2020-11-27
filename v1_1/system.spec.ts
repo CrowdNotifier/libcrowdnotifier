@@ -21,13 +21,13 @@ async function main() {
 
     log.info("Creating two visits");
     const counter1 = 1000;
-    const visit1 = new Visit(location1.getQRentry(urlEntry), counter1, counter1, true);
+    const visit1 = new Visit(location1.getQRentry(urlEntry), counter1, counter1);
 
     const counter2 = 1001;
-    const visit2 = new Visit(location2.getQRentry(urlEntry), counter2, counter2, true);
+    const visit2 = new Visit(location2.getQRentry(urlEntry), counter2, counter2);
 
     log.info("Location 1 got infected during three hours - creating traces");
-    const info1 = location1.infoStr();
+    const info1 = location1.info;
     const trace1_1 = healthAuthority.createTrace(location1qrTrace, info1, counter1-1, counter1-1);
     const trace1_2 = healthAuthority.createTrace(location1qrTrace, info1, counter1, counter1);
     const trace1_3 = healthAuthority.createTrace(location1qrTrace, info1, counter1+1, counter1+1);
@@ -37,7 +37,7 @@ async function main() {
 
     log.info("Checking if visit1 gets correctly notified");
     log.assert(visit1.verifyExposure([trace1_1])===undefined, "Shouldn't match counter-1");
-    log.assert(visit1.verifyExposure([trace1_2]) !== info1, "Should match counter");
+    log.assert(visit1.verifyExposure([trace1_2]) !== [counter1, counter1], "Should match counter");
     log.assert(visit1.verifyExposure([trace1_3])===undefined, "Shouldn't match counter-1");
 
     log.info("Checking if visit2 gets correctly NOT notified");

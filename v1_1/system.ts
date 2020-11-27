@@ -1,6 +1,14 @@
 import {CryptoV1_1, ILocationData, IVisit, tr} from "./crypto";
-import {crypto_box_seal, crypto_box_seal_open, from_base64, IKeyPair, randombytes_buf, to_base64} from "../lib/sodium";
-import {QRCodeContent, QRCodeTrace} from "./proto";
+import {
+    compare,
+    crypto_box_seal,
+    crypto_box_seal_open,
+    from_base64, from_string,
+    IKeyPair,
+    randombytes_buf,
+    to_base64, to_string
+} from "../lib/sodium";
+import {LocationInfo, QRCodeContent, QRCodeTrace} from "./proto";
 
 export interface ITrace {
     tr: tr;
@@ -29,11 +37,11 @@ export class HealthAuthority {
      * sent to all visitors.
      *
      * @param qrTrace the qr-code from the location
-     * @param info about the location
+     * @param expectedInfo about the location
      * @param start in seconds since unix epoch
      * @param end in seconds since unix epoch
      */
-    createTrace(qrTrace: string, info: string, start: number, end: number): ITrace {
+    createTrace(qrTrace: string, expectedInfo: LocationInfo, start: number, end: number): ITrace {
         const trace = qrTrace.replace(/^.*#/, '');
         const qrBuf = crypto_box_seal_open(
             from_base64(trace),
@@ -41,11 +49,14 @@ export class HealthAuthority {
             this.keyPair.privateKey
         );
         const qrCodeTrace = QRCodeTrace.decode(qrBuf);
-        if (qrCodeTrace.info !== info) {
+        // Check against expected info
+        const infoBuf = LocationInfo.encode(qrCodeTrace.info).finish();
+        if (compare(infoBuf,
+            LocationInfo.encode(expectedInfo).finish()) !== 0) {
             throw new Error("not the same info");
         }
         const tr = {sk: qrCodeTrace.trSk, r2: qrCodeTrace.trR2};
-        if (!CryptoV1_1.verifyTrace(info, tr,
+        if (!CryptoV1_1.verifyTrace(infoBuf, tr,
             {
                 r1: qrCodeTrace.pTrR1,
                 r2: qrCodeTrace.pTrR2,
@@ -62,22 +73,21 @@ export class HealthAuthority {
  */
 export class Location {
     public data: ILocationData;
-    public notificationKey = randombytes_buf(32);
+    public info: LocationInfo;
+    public infoBuf: Uint8Array;
 
     constructor(public healthAuthorityPubKey: Uint8Array,
-                public name: string,
-                public location: string,
-                public room: string,
-                public locationType: number) {
-        this.data = CryptoV1_1.genCode(this.infoStr());
-    }
-
-    static infoStr(name: string, location: string, room: string, locationType: number): string {
-        return [name, location, room, locationType.toString()].join("::");
-    }
-
-    infoStr(): string {
-        return Location.infoStr(this.name, this.location, this.room, this.locationType);
+                name: string,
+                location: string,
+                room: string,
+                venueType: number) {
+        this.info = new LocationInfo({
+            version: 1,
+            name, location, room, venueType,
+            notificationKey: randombytes_buf(32),
+        })
+        this.infoBuf = LocationInfo.encode(this.info).finish();
+        this.data = CryptoV1_1.genCode(this.infoBuf);
     }
 
     /**
@@ -92,7 +102,7 @@ export class Location {
             trR2: this.data.tr.r2,
             pTrR1: this.data.pTr.r1,
             pTrR2: this.data.pTr.r2,
-            info: this.infoStr(),
+            info: this.info,
         });
         const traceBuf = QRCodeTrace.encode(qrct).finish();
         const traceEnc = crypto_box_seal(traceBuf, this.healthAuthorityPubKey);
@@ -109,11 +119,7 @@ export class Location {
             version: 2,
             publicKey: this.data.ent,
             pEnt: this.data.pEnt,
-            name: this.name,
-            location: this.location,
-            room: this.room,
-            venueType: this.locationType,
-            notificationKey: this.notificationKey
+            info: this.info,
         });
 
         const qrCodeBuf = QRCodeContent.encode(qrCodeContent).finish();
@@ -126,12 +132,12 @@ export class Location {
  */
 export class Visit {
     private visit: IVisit;
+    public info: LocationInfo;
 
     constructor(
         qrCodeEntry: string,
-        public entry: number,
-        public departure: number,
-        diary?: boolean
+        entry: number,
+        departure: number
     ) {
         const qrBase64 = qrCodeEntry.replace(/^.*#/, '');
         const content = QRCodeContent.decode(from_base64(qrBase64));
@@ -141,9 +147,11 @@ export class Visit {
         if (content.version !== 2) {
             throw new Error("Wrong version")
         }
-        const infoBuf = Location.infoStr(content.name, content.location, content.room,
-            content.venueType);
-        this.visit = CryptoV1_1.scan(content.publicKey, content.pEnt, infoBuf, diary);
+        this.info = content.info;
+        const infoBuf = LocationInfo.encode(content.info).finish()
+        const auxStr = `${entry.toString()}::${departure.toString()}`
+        const aux = Uint8Array.from([...from_string(auxStr)])
+        this.visit = CryptoV1_1.scan(content.publicKey, content.pEnt, infoBuf, aux);
     }
 
     /**
@@ -152,13 +160,14 @@ export class Visit {
      * @param traces sent by the health authority
      * @return true if at least one of the traces is positive
      */
-    verifyExposure(traces: ITrace[]): (undefined | string) {
+    verifyExposure(traces: ITrace[]): (undefined | [number, number]) {
         for (const trace of traces) {
-            const info = CryptoV1_1.match(this.visit, trace.tr);
-            if (info !== undefined) {
-                if (this.entry >= trace.start &&
-                    this.departure <= trace.end) {
-                    return info;
+            const aux = CryptoV1_1.match(this.visit, trace.tr);
+            if (aux !== undefined) {
+                const [entry, departure] = to_string(aux).split("::").map((str) => parseInt(str))
+                if (entry >= trace.start &&
+                    departure <= trace.end) {
+                    return [entry, departure];
                 }
             }
         }
