@@ -21,15 +21,14 @@ message LocationInfo{
 message QRCodeContent{
   int32 version = 1;
   bytes publicKey = 2;
-  bytes pEnt = 3;
+  bytes r1 = 3;
   LocationInfo info = 4;
 }
 
 message QRCodeTrace{
   int32 version = 1;
-  bytes trSk = 2;
-  bytes trR2 = 3;
-  bytes pTrR1 = 4;
-  bytes pTrR2 = 5;
-  LocationInfo info = 6;
+  bytes sk = 2;
+  bytes r1 = 3;
+  bytes r2 = 4;
+  LocationInfo info = 5;
 }

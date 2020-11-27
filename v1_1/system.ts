@@ -55,11 +55,11 @@ export class HealthAuthority {
             LocationInfo.encode(expectedInfo).finish()) !== 0) {
             throw new Error("not the same info");
         }
-        const tr = {sk: qrCodeTrace.trSk, r2: qrCodeTrace.trR2};
+        const tr = {sk: qrCodeTrace.sk, r2: qrCodeTrace.r2};
         if (!CryptoV1_1.verifyTrace(infoBuf, tr,
             {
-                r1: qrCodeTrace.pTrR1,
-                r2: qrCodeTrace.pTrR2,
+                r1: qrCodeTrace.r1,
+                r2: qrCodeTrace.r2,
             })
         ) {
             throw new Error("trace verification fails")
@@ -98,10 +98,9 @@ export class Location {
     getQRtrace(baseURL: string): string {
         const qrct = new QRCodeTrace({
             version: 2,
-            trSk: this.data.tr.sk,
-            trR2: this.data.tr.r2,
-            pTrR1: this.data.pTr.r1,
-            pTrR2: this.data.pTr.r2,
+            sk: this.data.tr.sk,
+            r1: this.data.pTr.r1,
+            r2: this.data.pTr.r2,
             info: this.info,
         });
         const traceBuf = QRCodeTrace.encode(qrct).finish();
@@ -115,10 +114,10 @@ export class Location {
      * @param baseURL - anything - is ignored and removed afterwards.
      */
     getQRentry(baseURL: string): string {
-        const qrCodeContent = QRCodeContent.create({
+        const qrCodeContent = new QRCodeContent({
             version: 2,
             publicKey: this.data.ent,
-            pEnt: this.data.pEnt,
+            r1: this.data.pEnt,
             info: this.info,
         });
 
@@ -151,7 +150,7 @@ export class Visit {
         const infoBuf = LocationInfo.encode(content.info).finish()
         const auxStr = `${entry.toString()}::${departure.toString()}`
         const aux = Uint8Array.from([...from_string(auxStr)])
-        this.visit = CryptoV1_1.scan(content.publicKey, content.pEnt, infoBuf, aux);
+        this.visit = CryptoV1_1.scan(content.publicKey, content.r1, infoBuf, aux);
     }
 
     /**

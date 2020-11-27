@@ -2,7 +2,7 @@ import {CryptoV1, ILocationData, ILocationInfo, ITrace, IVisit} from "./crypto";
 import {
     crypto_box_seal,
     crypto_box_seal_open,
-    crypto_sign_detached,
+    crypto_sign_detached, crypto_sign_verify_detached,
     from_base64, IKeyPair,
     to_base64
 } from "../lib/sodium";
@@ -118,6 +118,9 @@ export class Visit {
         const content: QRCodeContent = qrEntry.content;
         if (content === undefined) {
             throw new Error("didn't find 'content'");
+        }
+        if (!crypto_sign_verify_detached(qrEntry.signature, QRCodeContent.encode(content).finish(), content.publicKey)){
+            throw new Error("signature didn't match");
         }
         const info: ILocationInfo = {
             name: content.name, location: content.location, room: content.room, locationType: content.venueType

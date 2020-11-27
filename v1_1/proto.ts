@@ -12,16 +12,15 @@ export class LocationInfo extends Message<LocationInfo> {
 export class QRCodeContent extends Message<QRCodeContent> {
     version: number;
     publicKey: Uint8Array;
-    pEnt: Uint8Array;
+    r1: Uint8Array;
     info: LocationInfo;
 }
 
 export class QRCodeTrace extends Message<QRCodeTrace> {
     version: number;
-    trSk: Uint8Array;
-    trR2: Uint8Array;
-    pTrR1: Uint8Array;
-    pTrR2: Uint8Array;
+    sk: Uint8Array;
+    r1: Uint8Array;
+    r2: Uint8Array;
     info: LocationInfo;
 }
 
