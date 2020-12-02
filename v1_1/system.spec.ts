@@ -28,22 +28,22 @@ async function main() {
 
     log.info("Location 1 got infected during three hours - creating traces");
     const info1 = location1.info;
-    const trace1_1 = healthAuthority.createTrace(location1qrTrace, info1, counter1-1, counter1-1);
+    const trace1_1 = healthAuthority.createTrace(location1qrTrace, info1, counter1 - 1, counter1 - 1);
     const trace1_2 = healthAuthority.createTrace(location1qrTrace, info1, counter1, counter1);
-    const trace1_3 = healthAuthority.createTrace(location1qrTrace, info1, counter1+1, counter1+1);
-    if (trace1_1 === undefined || trace1_2 === undefined || trace1_3 === undefined){
+    const trace1_3 = healthAuthority.createTrace(location1qrTrace, info1, counter1 + 1, counter1 + 1);
+    if (trace1_1 === undefined || trace1_2 === undefined || trace1_3 === undefined) {
         throw new Error("Couldn't create the traces");
     }
 
     log.info("Checking if visit1 gets correctly notified");
-    log.assert(visit1.verifyExposure([trace1_1])===undefined, "Shouldn't match counter-1");
-    log.assert(visit1.verifyExposure([trace1_2]) !== [counter1, counter1], "Should match counter");
-    log.assert(visit1.verifyExposure([trace1_3])===undefined, "Shouldn't match counter-1");
+    log.assert(visit1.verifyExposure([trace1_1]), undefined, "Shouldn't match counter-1");
+    log.assert(visit1.verifyExposure([trace1_2]), [counter1, counter1], "Should match counter");
+    log.assert(visit1.verifyExposure([trace1_3]), undefined, "Shouldn't match counter-1");
 
     log.info("Checking if visit2 gets correctly NOT notified");
-    log.assert(!visit2.verifyExposure([trace1_1]), "Shouldn't match visit2");
-    log.assert(!visit2.verifyExposure([trace1_2]), "Shouldn't match visit2");
-    log.assert(!visit2.verifyExposure([trace1_3]), "Shouldn't match visit2");
+    log.assert(visit2.verifyExposure([trace1_1]), undefined, "trace1_1 shouldn't match visit2");
+    log.assert(visit2.verifyExposure([trace1_2]), undefined, "trace1_2 shouldn't match visit2");
+    log.assert(visit2.verifyExposure([trace1_3]), undefined, "trace1_3 shouldn't match visit2");
 
     log.info("System check successfully finished!");
 }

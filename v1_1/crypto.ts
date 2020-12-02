@@ -133,8 +133,9 @@ export class CryptoV1_1 {
         const t = tAux.slice(0, 32);
         const aux = tAux.slice(32);
         // takes the hash of (t || r2)
-        const skP = crypto_hash_sha256(Uint8Array.from([...t, ...r2]));
-        if (compare(sk, skP) !== 0){
+        const seed = crypto_hash_sha256(Uint8Array.from([...t, ...r2]));
+        const keyPair = crypto_box_seed_keypair(seed);
+        if (compare(sk, keyPair.privateKey) !== 0){
             return undefined;
         }
         return aux;
