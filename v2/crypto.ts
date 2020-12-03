@@ -15,8 +15,7 @@ import * as mcl from "../lib/mcl";
 import {
     IBEIdInternal1,
     IBEIdInternal2,
-    IBEEncInternal,
-    IBEEncryptedData
+    IBEEncInternal
 } from "./proto";
 
 // security of 128 bits = 16 bytes
@@ -65,6 +64,13 @@ export interface ITraceProof {
 export interface ITrace {
     id: Uint8Array;
     skid: mcl.G1;
+}
+
+export interface IEncryptedData {
+    c1: mcl.G2;
+    c2: Uint8Array,
+    c3: Uint8Array,
+    nonce: Uint8Array
 }
 
 /**
@@ -123,7 +129,7 @@ export class CrowdNotifierPrimitives {
      * @param aux free data
      * @return user record to be stored
      */
-    static scan(ent: mcl.G2, pEnt: IEntProof, info: string, cnt: number, aux: string): Uint8Array {
+    static scan(ent: mcl.G2, pEnt: IEntProof, info: string, cnt: number, aux: string): IEncryptedData {
         const aux_u = new TextEncoder().encode(aux);
         const id = IBEPrimitives.genId(info, cnt, pEnt.nonce1, pEnt.nonce2);
         return IBEPrimitives.enc(ent, id, aux_u);
@@ -237,7 +243,7 @@ export class CrowdNotifierPrimitives {
      * @param tr one of the traces received by the health authority
      * @return the data encrypted during the scan if the record match the trace or undefined otherwise
      */
-    static match(rec: Uint8Array, tr: ITrace): (string|undefined) {
+    static match(rec: IEncryptedData, tr: ITrace): (string|undefined) {
         const rec_u = IBEPrimitives.dec(tr.id, tr.skid, rec);
         if (rec_u === undefined) {
             return undefined;
@@ -365,7 +371,7 @@ export class IBEPrimitives {
      * @param msg message
      * @returns the encrypted message
      */
-    static enc(mpk: mcl.G2, id: Uint8Array, msg: Uint8Array): Uint8Array {
+    static enc(mpk: mcl.G2, id: Uint8Array, msg: Uint8Array): IEncryptedData {
         const x = randombytes_buf(32)
 
         const r_raw = this.h3(x, msg, id);
@@ -382,15 +388,12 @@ export class IBEPrimitives {
 
         const c3 = crypto_secretbox_easy(msg, nonce, this.h4(x));
 
-        const ctxt = IBEEncryptedData.encode(
-            IBEEncryptedData.create({
-                c1: c1.serialize(),
-                c2: c2,
-                c3: c3,
-                nonce: nonce
-            })
-        ).finish()
-        return ctxt;
+        return {
+            c1: c1,
+            c2: c2,
+            c3: c3,
+            nonce: nonce
+        };
     }
 
 
@@ -401,15 +404,16 @@ export class IBEPrimitives {
      * @param ctxt encrypted message
      * @returns the decrypted message or undefined if we fails to decrypt the ciphertext, or if the validation fails
      */
-    static dec(id: Uint8Array, skid: mcl.G1, ctxt: Uint8Array): Uint8Array|undefined {    
+    static dec(id: Uint8Array, skid: mcl.G1, ctxt: IEncryptedData): Uint8Array|undefined {    
     
         // Extract info from context.
-        const ctxt_proto = IBEEncryptedData.decode(ctxt);
-        const c1 = new mcl.G2();
-        c1.deserialize(ctxt_proto.c1)
-        const c2 = ctxt_proto.c2
-        const c3 = ctxt_proto.c3
-        const nonce = ctxt_proto.nonce
+        // const ctxt_proto = IBEEncryptedData.decode(ctxt);
+        // const c1 = new mcl.G2();
+        // c1.deserialize(ctxt_proto.c1)
+        // const c2 = ctxt_proto.c2
+        // const c3 = ctxt_proto.c3
+        // const nonce = ctxt_proto.nonce
+        const {c1,c2,c3,nonce} = ctxt;
 
         // TODO: Check that skid is in G1*
 

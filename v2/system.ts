@@ -1,7 +1,7 @@
-import {ILocationData, IPreTrace, CrowdNotifierPrimitives} from "./crypto";
+import {ILocationData, IEncryptedData, CrowdNotifierPrimitives} from "./crypto";
 import {from_base64, to_base64} from "../lib/sodium";
 import * as mcl from "../lib/mcl";
-import {MasterTrace, PreTrace, LocationData, QRCodeEntry, QRCodeTrace, Trace, PreTraceWithProof} from "./proto";
+import {MasterTrace, LocationData, QRCodeEntry, QRCodeTrace, Trace, PreTraceWithProof} from "./proto";
 
 /**
  * The System package uses the crypto but only passes around base64 encoded protobuf messages. This helps to
@@ -167,7 +167,7 @@ export class Location {
  */
 export class Visit {
     public identity: string;
-    private data: Uint8Array;
+    private data: IEncryptedData;
 
     constructor(
         qrCodeEntry: string,

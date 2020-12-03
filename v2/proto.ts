@@ -70,13 +70,6 @@ export class IBEEncInternal extends Message<IBEEncInternal> {
     id: Uint8Array;
 }
 
-export class IBEEncryptedData extends Message<IBEEncryptedData> {
-    c1: Uint8Array;
-    c2: Uint8Array;
-    c3: Uint8Array;
-    nonce: Uint8Array;
-}
-
 const protoRoot = loadSync("v2/messages.proto");
 protoRoot.lookupType("crowdnotifier_v2.QRCodeTrace").ctor = QRCodeTrace;
 protoRoot.lookupType("crowdnotifier_v2.QRCodeEntry").ctor = QRCodeEntry;
@@ -90,4 +83,3 @@ protoRoot.lookupType("crowdnotifier_v2.Trace").ctor = Trace;
 protoRoot.lookupType("crowdnotifier_v2.IBEIdInternal1").ctor = IBEIdInternal1;
 protoRoot.lookupType("crowdnotifier_v2.IBEIdInternal2").ctor = IBEIdInternal2;
 protoRoot.lookupType("crowdnotifier_v2.IBEEncInternal").ctor = IBEEncInternal;
-protoRoot.lookupType("crowdnotifier_v2.IBEEncryptedData").ctor = IBEEncryptedData;

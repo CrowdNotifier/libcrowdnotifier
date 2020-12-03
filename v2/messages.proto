@@ -71,10 +71,3 @@ message IBEEncInternal {
   bytes m = 2;
   bytes id = 3;
 }
-
-message IBEEncryptedData {
-  bytes c1 = 1;
-  bytes c2 = 2;
-  bytes c3 = 3;
-  bytes nonce = 4;
-}
