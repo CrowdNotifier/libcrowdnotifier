@@ -23,4 +23,21 @@ export class Log {
   error(err: Error) {
     this.info("Error:", err.toString());
   }
+
+  assert(a: any, b: any, ...msgs){
+    this.test(true, a, b, ...msgs);
+  }
+
+  reject(a: any, b: any, ...msgs){
+    this.test(false, a, b, ...msgs);
+  }
+
+  test(expect: boolean, a: any, b: any, ...msgs){
+    const [jsona, jsonb] = [JSON.stringify(a), JSON.stringify(b)];
+    const result = jsona === jsonb;
+    if (result != expect){
+      throw new Error(`Assertion ( '${jsona}' === '${jsonb}' ) === '${expect}' failed: ` + [...msgs].join(":"))
+    }
+
+  }
 }

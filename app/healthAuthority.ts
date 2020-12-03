@@ -1,7 +1,7 @@
-import { HealthAuthorityBackend } from "./healthAuthorityBackend";
-import { Location } from "./location";
-import { Log } from "./log";
-import { Internet } from "./internet";
+import { HealthAuthorityBackend } from "app/healthAuthorityBackend";
+import { Location } from "app/location";
+import { Log } from "lib/log";
+import { Internet } from "app/internet";
 
 export class HealthAuthority {
   private log: Log;

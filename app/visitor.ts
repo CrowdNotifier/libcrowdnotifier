@@ -1,7 +1,6 @@
-import {QRCodeContent, QRCodeWrapper} from "./protobuf/index";
-import {Log} from "./log";
-import {Internet} from "./internet";
-import {CryptoLocation, CryptoVisit, from_base64} from "./crypto";
+import {Log} from "lib/log";
+import {Internet} from "app/internet";
+import {CryptoVisit, from_base64} from "lib/crypto";
 
 /**
  * The Visitor can visit locations and has methods to poll
@@ -31,13 +30,8 @@ export class Visitor {
     addLocation(qrcode: string, agenda: boolean, entry: number, departure: number) {
         const qrBase64 = qrcode.replace(/.*#/, "");
         const qrBuf = from_base64(qrBase64);
-        const wrapper = QRCodeWrapper.decode(qrBuf);
-        const location: QRCodeContent = wrapper.content;
-        if (!CryptoLocation.verifyWrapper(wrapper)) {
-            throw new Error("Location QRCode not correct");
-        }
-        this.visits.push(new CryptoVisit(location, entry, departure, agenda));
-        this.log.info("Location accepted:", location.name, location.location);
+        this.visits.push(new CryptoVisit(qrBuf, entry, departure, agenda));
+        this.log.info("Location accepted");
     }
 
     async checkExposure(): Promise<string[]> {
@@ -46,7 +40,7 @@ export class Visitor {
             new URL(`${this.urlCrowdBack}/getTraces`)
         );
         const traces = JSON.parse(tracesStr);
-        const exposures = this.visits.filter(v => v.decryptExposure(traces));
+        const exposures = this.visits.filter(v => v.verifyExposure(traces));
         return exposures.map(exposure => exposure.identity);
     }
 }

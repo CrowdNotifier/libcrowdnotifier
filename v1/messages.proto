@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package crowdnotifier_v1;
+
+message VenueType{}
+
+message QRCodeContent{
+  int32 version = 1;
+  bytes publicKey = 2;
+  string name = 3;
+  string location = 4;
+  string room = 5;
+  VenueType venueType = 6;
+  bytes notificationKey = 7;
+}
+
+message QRCodeWrapper {
+  int32 version = 1;
+  QRCodeContent content = 2;
+  bytes signature = 3;
+}
+
+message SeedMessage{
+  bytes salt = 1;
+  bytes notificationKey = 2;
+  string name = 3;
+  string location = 4;
+  string room = 5;
+}

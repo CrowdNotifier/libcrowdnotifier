@@ -65,29 +65,33 @@ This figure shows the steps to publish a trace location:
 - Insert test data from the main
 - Test with different versions of the QRCode
 
-## Starting the demo
+## Directories
 
-To start the demo, enter the following commands:
+- lib - types of mcl and sodium libraries
+- [v1](v1/README.md) - first crypto implementation early November 2020
+- [v1_1](V1_1/README.md) - improved crypto implementation without switching ed25519/curve25519,
+according to the white paper from the 26th of November 2020
+- [v2](v2/README.md) - latest changes in crowdNotifier - section7
+- app - DEFUNCT - the previous app all in one
 
-```bash
+## Starting the tests
+
+To start the tests, run the following commands:
+
+```
 npm ci
 npm start
 ```
 
-Or you can play around with it on [StackBlitz](https://stackblitz.io/edit/crowdnotifier).
-
-## Format of the demo
-
-Each element of the CrowdNotifier system is represented as a class.
-An additional class called `Internet` shows interaction over the internet.
-All other interactions are user interactions like entering a code or scanning a QRCode.
+[Section7 README](v2/README.md)
 
 ## Next Steps
 
 This reference implementation is just to show how the pieces fit together from a programmers' perspective.
 The following steps are in the pipeline:
 
-- separate the crypto in its own package
+- separate the crypto in its own package - done
+- implement latest changes in CrowdNotifier white paper - done
 - use it as a web-app
 
 # Contributing
