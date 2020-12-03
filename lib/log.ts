@@ -24,6 +24,18 @@ export class Log {
     this.info("Error:", err.toString());
   }
 
+  assertTrue(result: boolean, ...msgs) {
+    if (!result) {
+      throw new Error([...msgs].join(":"));
+    }
+  }
+
+  assertFalse(result: boolean, ...msgs) {
+    if (result) {
+      throw new Error([...msgs].join(":"));
+    }
+  }
+
   assert(a: any, b: any, ...msgs){
     this.test(true, a, b, ...msgs);
   }

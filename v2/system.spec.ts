@@ -39,14 +39,14 @@ async function main() {
     }
 
     log.info("Checking if visit1 gets correctly notified");
-    log.assert(visit1.verifyExposure([trace1_1]), false, "Shouldn't match counter-1");
-    log.assert(visit1.verifyExposure([trace1_2]), true, "Should match counter");
-    log.assert(visit1.verifyExposure([trace1_3]), false,"Shouldn't match counter+1");
+    log.assertTrue(!visit1.verifyExposure([trace1_1]), "Shouldn't match counter-1");
+    log.assertTrue(visit1.verifyExposure([trace1_2]), "Should match counter");
+    log.assertTrue(!visit1.verifyExposure([trace1_3]), "Shouldn't match counter+1");
 
     log.info("Checking if visit2 gets correctly NOT notified");
-    log.assert(visit2.verifyExposure([trace1_1]), false, "Shouldn't match visit2");
-    log.assert(visit2.verifyExposure([trace1_2]), false, "Shouldn't match visit2");
-    log.assert(visit2.verifyExposure([trace1_3]), false, "Shouldn't match visit2");
+    log.assertTrue(!visit2.verifyExposure([trace1_1]), "Shouldn't match visit2");
+    log.assertTrue(!visit2.verifyExposure([trace1_2]), "Shouldn't match visit2");
+    log.assertTrue(!visit2.verifyExposure([trace1_3]), "Shouldn't match visit2");
 
     log.info("System check successfully finished!");
 }
