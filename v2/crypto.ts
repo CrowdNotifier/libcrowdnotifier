@@ -1,19 +1,26 @@
 import {
+    compare,
     crypto_box_keypair,
     crypto_box_seal,
-    crypto_box_seal_open, crypto_hash_sha256,
+    crypto_box_seal_open,
+    crypto_hash_sha256,
     crypto_secretbox_easy,
-    crypto_secretbox_keygen,
     crypto_secretbox_open_easy,
-    from_string,
     IKeyPair,
     randombytes_buf,
     secretbox_nonce,
-    to_string,
     waitReady as sodiumWaitReady
 } from "../lib/sodium";
 import * as mcl from "../lib/mcl";
-import {Commitment} from "./proto";
+import {
+    IBEIdInternal1,
+    IBEIdInternal2,
+    IBEEncInternal,
+    IBEEncryptedData
+} from "./proto";
+
+// security of 128 bits = 16 bytes
+const SECURITY_PARAMETER = 16;
 
 export async function waitReady() {
     await mcl.waitReady();
@@ -21,185 +28,423 @@ export async function waitReady() {
 }
 
 /**
- * What needs to be stored in the users' phone.
- */
-export interface IUserRecord {
-    R1: mcl.G2
-    Z1: mcl.GT
-    R2: mcl.G2
-    K: Uint8Array
-    c: Uint8Array
-    ctxt_nonce: Uint8Array
-}
-
-/**
  * This is the secret information of the location.
  */
 export interface IMasterTrace {
+    mpk: mcl.G2;
     mskv: mcl.Fr;
+    mskhEnc: Uint8Array;
     info: string;
-    nonce: Uint8Array;
-    mskHAEnc: Uint8Array;
+    nonce1: Uint8Array;
+    nonce2: Uint8Array;
 }
 
-/**
- * Things to print on QRcodes - the mtr part only needs to be used when an infection is signaled.
- */
+export interface IEntProof {
+    nonce1: Uint8Array;
+    nonce2: Uint8Array;
+}
+
 export interface ILocationData {
-    // entry information
     ent: mcl.G2;
-    // proof for the entry information
-    pEnt: Uint8Array;
-    // master tracing information for the QRtrace)
+    pEnt: IEntProof;
     mtr: IMasterTrace;
 }
 
-/**
- * The request from the health authority to the location owner to create a proof to be sent to
- * the visitors.
- */
 export interface IPreTrace {
-    Tprime: mcl.G1
-    info: string
-    nonce: Uint8Array
-    ctxt: Uint8Array
+    id: Uint8Array;
+    mskhEnc: Uint8Array;
+    preskid: mcl.G1;
+}
+
+export interface ITraceProof {
+    mpk: mcl.G2;
+    nonce1: Uint8Array;
+    nonce2: Uint8Array;
+}
+
+export interface ITrace {
+    id: Uint8Array;
+    skid: mcl.G1;
 }
 
 /**
- * Section7 implements the cryptographic protocol in section 7 of the CrowdNotifier whitepaper.
+ * Implements the cryptographic protocol in section 4.2 of the CrowdNotifier whitepaper.
  */
-export class Section7 {
+export class CrowdNotifierPrimitives {
+    
     /**
-     * Setup for the HealthAuthority - returns a keypair that can be used to encrypt the QRtrack codes.
+     * Generate key pair for health authority.
      */
-    static setupHA(): IKeyPair {
+    static setupHealthAuthority(): IKeyPair {
         return crypto_box_keypair();
     }
+    
 
     /**
      * Creates the data necessary for a location owner.
-     * @param info is the public info of the location, e.g., name:location:room
-     * @param pkH the public key of the health authority
-     * @return the LocationData to be printed in 2 (3?) QRcodes
+     * @param info public info of the location, e.g., name:location:room
+     * @param pkha public key of the health authority 
+     * @return the LocationData to be printed in multiple QR codes
      */
-    static genCode(info: string, pkH: Uint8Array): ILocationData {
-        const mskv = new mcl.Fr();
-        mskv.setByCSPRNG();
-        const mskHA = new mcl.Fr();
-        mskHA.setByCSPRNG();
-        const msk = mcl.add(mskv, mskHA);
-        const mpk = mcl.mul(Helpers.baseG2(), msk);
-        const nonce = randombytes_buf(msk.serialize().byteLength * 2);
-        const mskHAEnc = crypto_box_seal(mskHA.serialize(), pkH);
-        const mtr = {mskv, info, nonce, mskHAEnc}
-        return {ent: mpk, pEnt: nonce, mtr};
+    static genCode(info: string, pkha: Uint8Array): ILocationData {
+        const [mpk, mskh, mskv] = IBEPrimitives.keyGen();
+        const nonce_len = 2 * SECURITY_PARAMETER
+        const nonce1 = randombytes_buf(nonce_len);
+        const nonce2 = randombytes_buf(nonce_len);
+        const mskhEnc = crypto_box_seal(mskh.serialize(), pkha);
+        const pEnt = {
+            nonce1: nonce1,
+            nonce2: nonce2
+        };
+
+        const mtr = {
+            mpk: mpk,
+            mskv: mskv,
+            mskhEnc: mskhEnc,
+            info: info,
+            nonce1: nonce1,
+            nonce2: nonce2
+        };
+
+        return {
+            ent: mpk,
+            pEnt: pEnt,
+            mtr: mtr
+        }   
     }
+    
 
     /**
      * Creates a private record for the user to store in her phone.
      * @param ent as presented in the QRentry
      * @param pEnt as presented in the QRentry
      * @param info as presented in the QRentry
-     * @param cnt as hours since the unix epoch
-     * @param aux free string
+     * @param cnt count of hours since UNIX epoch
+     * @param aux free data
      * @return user record to be stored
      */
-    static scan(ent: mcl.G2, pEnt: Uint8Array, info: string, cnt: number, aux: string): IUserRecord {
-        const mpk = ent;
-        const nonce = pEnt;
-
-        const r1 = new mcl.Fr();
-        r1.setByCSPRNG();
-        const r2 = new mcl.Fr();
-        r2.setByCSPRNG();
-        const k = crypto_secretbox_keygen();
-        const ctxt_nonce = secretbox_nonce();
-        const c = crypto_secretbox_easy(from_string(aux), ctxt_nonce, k);
-
-        const R1 = mcl.mul(Helpers.baseG2(), r1);
-        const H1inc = this.infoNonceCounter(info, nonce, cnt);
-        const Z1 = mcl.pairing(mcl.mul(H1inc, r1), mpk);
-        const R2 = mcl.mul(Helpers.baseG2(), r2);
-        const Z2 = mcl.pairing(mcl.mul(H1inc, r2), mpk);
-        const K = Helpers.xor(k, Helpers.hashT(Z2));
-
-        return {R1, Z1, R2, K, c, ctxt_nonce};
+    static scan(ent: mcl.G2, pEnt: IEntProof, info: string, cnt: number, aux: string): Uint8Array {
+        const aux_u = new TextEncoder().encode(aux);
+        const id = IBEPrimitives.genId(info, cnt, pEnt.nonce1, pEnt.nonce2);
+        return IBEPrimitives.enc(ent, id, aux_u);
     }
 
-    /**
-     * Convenience method to calculate the hash-to-G1 of the info, nonce, and counter.
-     * @param info
-     * @param nonce
-     * @param counter
-     */
-    static infoNonceCounter(info: string, nonce: Uint8Array, counter: number): mcl.G1 {
-        const buf = Commitment.encode(Commitment.create({
-            info, nonce, counter
-        })).finish();
-        return mcl.hashAndMapToG1(buf);
-    }
 
     /**
-     * Generates a pre-trace by the location owner, one for every slot of possible infection.
-     * @param mtrV master trace record from the location
-     * @param cnt hours since the unix epoch
-     * @return an IPreTrace for the health authority
-     */
-    static genPreTrace(mtrV: IMasterTrace, cnt: number): IPreTrace {
-        const {info, nonce, mskv, mskHAEnc: ctxt} = mtrV;
-        const Tprime = mcl.mul(this.infoNonceCounter(info, nonce, cnt), mskv);
-        return {Tprime, info, nonce, ctxt};
-    }
-
-    /**
-     * Generates an anonymous trace that can only be used by people having scanned the QRentry code
-     * @param kpHA the keypair of the health authority
-     * @param cnt hours since the unix epoch
-     * @param ptr from genPreTrace
-     * @param proofPTR is ignored for the moment
+     * Generates an anonymous trace that can only be used by people having scanned the QRentry code.
+     * @param mtr Location owner information
+     * @param cnt count of hours since UNIX epoch
      * @return tracing information to be stored
-     * @throws an error if it cannot deserialize or cannot decrypt the context.
      */
-    static genTrace(kpHA: IKeyPair, cnt: number, ptr: IPreTrace, proofPTR?: Uint8Array): (mcl.G1 | undefined) {
-        const {Tprime, info, nonce, ctxt} = ptr;
-        const mskHA = new mcl.Fr();
+    /*
+    static genTraceOld(mtr: IMasterTrace, cnt: number): [ITrace, ITraceProof] {
+        const id = IBEPrimitives.genId(mtr.info, cnt, mtr.nonce1, mtr.nonce2);
+        const skid = IBEPrimitives.keyDer(mtr.msk, id);
+        const tr = {
+            id: id,
+            skid: skid
+        };
+        const tr_proof = {
+            mpk: mtr.mpk,
+            nonce1: mtr.nonce1,
+            nonce2: mtr.nonce2
+        };
+        
+        return [tr, tr_proof];
+    }
+    */
+
+
+    /**
+     * Generates an anonymous trace prior that can only be used by people having scanned the QRentry code.
+     * @param mtr master trace
+     * @param cnt count of hours since UNIX epoch
+     * @returns tracing information prior and proof of tracing information
+     */
+    static genPreTrace(mtr: IMasterTrace, cnt: number): [IPreTrace, ITraceProof] {
+        const id = IBEPrimitives.genId(mtr.info, cnt, mtr.nonce1, mtr.nonce2);
+        const preskid = IBEPrimitives.keyDer(mtr.mskv, id);
+        const pre_trace = {
+            id: id,
+            mskhEnc: mtr.mskhEnc,
+            preskid: preskid
+        };
+        const tr_proof = {
+            mpk: mtr.mpk,
+            nonce1: mtr.nonce1,
+            nonce2: mtr.nonce2
+        };
+
+        return [pre_trace, tr_proof];
+    }
+
+    /**
+     * Generates an anonymous trace that can only be used by people having scanned the QRentry code.
+     * @param keys_ha key pair of health authority
+     * @param pre_trace tracing information prior
+     * @return trace information or undefined if we fail to decrypted the pretrace data
+     */
+    static genTrace(keys_ha: IKeyPair, pre_trace: IPreTrace): ITrace {
+        const mskh = new mcl.Fr()
         try {
-            mskHA.deserialize(crypto_box_seal_open(ctxt, kpHA.publicKey, kpHA.privateKey));
-        } catch (e) {
-            console.log("couldn't decrypt or deserialize: " + e);
+            const mskh_raw = crypto_box_seal_open(pre_trace.mskhEnc, keys_ha.publicKey, keys_ha.privateKey);
+            mskh.deserialize(mskh_raw);
+        }
+        catch (e) {
             return undefined;
         }
-        const B = this.infoNonceCounter(info, nonce, cnt);
-        return mcl.add(Tprime, mcl.mul(B, mskHA));
+        const preskid = IBEPrimitives.keyDer(mskh, pre_trace.id);
+
+        const skid = mcl.add(pre_trace.preskid, preskid)
+
+        const trace = {
+            id: pre_trace.id,
+            skid: skid
+        };
+        
+        return trace;
     }
+    
+    /**
+     * Verify that a trace is valid.
+     * @param info as presented in the QRentry
+     * @param cnt count of hours since UNIX epoch
+     * @param tr trace information
+     * @param pTr proof of the trace information
+     */
+    static verifyTrace(info: string, cnt: number, tr: ITrace, pTr: ITraceProof): boolean {
+        const id = IBEPrimitives.genId(info, cnt, pTr.nonce1, pTr.nonce2);
+        
+        if (compare(id, tr.id) !== 0) {
+            return false;
+        }
+        
+        const msg_orig = randombytes_buf(2*SECURITY_PARAMETER);
+        const msg_enc = IBEPrimitives.enc(pTr.mpk, id, msg_orig);
+        const msg_dec = IBEPrimitives.dec(id, tr.skid, msg_enc);
+        
+        if (compare(msg_orig, msg_dec) !== 0) {
+            return false;
+        }
+        
+        return true;
+    }
+
 
     /**
      * Tries to match a user record against a trace.
      * @param rec one of the user records created by scan
      * @param tr one of the traces received by the health authority
-     * @return the aux string (if empty will be "") or undefined if no match occurred
+     * @return the data encrypted during the scan if the record match the trace or undefined otherwise
      */
-    static match(rec: IUserRecord, tr: mcl.G1): (string | undefined) {
-        const Z1prime = mcl.pairing(tr, rec.R1);
-        if (!Z1prime.isEqual(rec.Z1)) {
+    static match(rec: Uint8Array, tr: ITrace): (string|undefined) {
+        const rec_u = IBEPrimitives.dec(tr.id, tr.skid, rec);
+        if (rec_u === undefined) {
             return undefined;
-        }
+        } 
+        return new TextDecoder().decode(rec_u);
+    }
+}
+
+/**
+ * Cryptographic primitives used in the identity-based encryption (IBE) scheme.
+ */
+export class IBEPrimitives {
+
+    /**
+     * Hash a message to an element of G1 in a cryptographically secure manner.
+     * @param msg message to hash
+     * @returns hash of the message
+     */
+    private static h1(msg: Uint8Array): mcl.G1 {
+        return mcl.hashAndMapToG1(msg);
+    }
+
+
+    /**
+     * Hash an element of GT to a cryptographically secure hash.
+     * @param gt_elem element of GT
+     * @returns hash of the element of GT
+     */
+    private static ht(gt_elem: mcl.GT): Uint8Array {
+        return crypto_hash_sha256(gt_elem.serialize());
+    }
+
+
+    /**
+     * Hash a message, an identifier and a nonce to a cryptographically secure hash.
+     * @param x nonce
+     * @param msg message
+     * @param id identifier
+     * @returns hash of the values
+     */
+    private static h3(x: Uint8Array, msg: Uint8Array, id: Uint8Array): Uint8Array {
+        const to_hash = IBEEncInternal.encode(
+            IBEEncInternal.create({
+                x: x,
+                msg: msg,
+                id: id
+            })
+        ).finish();
+        return crypto_hash_sha256(to_hash);
+    }
+
+
+    private static h4 = crypto_hash_sha256;
+
+
+    /**
+     * Generate a pair of public and private keys.
+     * @returns a tuple containing the master public key and the master secret key 
+     */
+    static keyGen(): [mcl.G2, mcl.Fr, mcl.Fr] {
+        const mskh = new mcl.Fr();
+        mskh.setByCSPRNG();
+
+        const mskv = new mcl.Fr();
+        mskv.setByCSPRNG();
+
+        const msk = mcl.add(mskh, mskv);
+
+        const mpk = mcl.mul(Helpers.baseG2(), msk);
+
+        return [mpk, mskh, mskv];
+    }
+
+
+    /**
+     * Generate an identifier.
+     * @param info public information
+     * @param cnt counter
+     * @param nonce1 a nonce
+     * @param nonce2 an other nonce
+     * @returns an identifier
+     */
+    static genId(info: string, cnt: number, nonce1: Uint8Array, nonce2: Uint8Array): Uint8Array {
+        
+        //id = H(H(info || nonce1) || cnt || nonce2)
+
+        const hash1 = crypto_hash_sha256(
+            IBEIdInternal1.encode(
+                IBEIdInternal1.create({
+                    info: info,
+                    nonce: nonce1
+                })
+            ).finish()
+        );
+
+        const id = crypto_hash_sha256(
+            IBEIdInternal2.encode(
+                IBEIdInternal2.create({
+                    hash: hash1,
+                    cnt: cnt,
+                    nonce: nonce2
+                })
+            ).finish()
+        );
+
+        return id;
+    }
+
+
+    /**
+     * Key derivation function.
+     * @param msk master secret key
+     * @param id identifier
+     * @returns a key derived for the identifier
+     */
+    static keyDer(msk: mcl.Fr, id: Uint8Array): mcl.G1 {
+        return mcl.mul(this.h1(id), msk);
+    }
+
+
+    /**
+     * Encrypt a message
+     * @param mpk master public key
+     * @param id identifier
+     * @param msg message
+     * @returns the encrypted message
+     */
+    static enc(mpk: mcl.G2, id: Uint8Array, msg: Uint8Array): Uint8Array {
+        const x = randombytes_buf(32)
+
+        const r_raw = this.h3(x, msg, id);
+
+        const r = new mcl.Fr();
+        r.setFromArray(r_raw);
+
+        const c1: mcl.G2 = mcl.mul(Helpers.baseG2(), r);
+
+        const c2_pair = this.ht(mcl.mul(mcl.pairing(this.h1(id), mpk), r));
+        const c2 = Helpers.xor(x, c2_pair)
+
+        const nonce = secretbox_nonce();
+
+        const c3 = crypto_secretbox_easy(msg, nonce, this.h4(x));
+
+        const ctxt = IBEEncryptedData.encode(
+            IBEEncryptedData.create({
+                c1: c1.serialize(),
+                c2: c2,
+                c3: c3,
+                nonce: nonce
+            })
+        ).finish()
+        return ctxt;
+    }
+
+
+    /**
+     * Decrypt a message.
+     * @param id identifier
+     * @param skid key derived for the identifier
+     * @param ctxt encrypted message
+     * @returns the decrypted message or undefined if we fails to decrypt the ciphertext, or if the validation fails
+     */
+    static dec(id: Uint8Array, skid: mcl.G1, ctxt: Uint8Array): Uint8Array|undefined {    
+    
+        // Extract info from context.
+        const ctxt_proto = IBEEncryptedData.decode(ctxt);
+        const c1 = new mcl.G2();
+        c1.deserialize(ctxt_proto.c1)
+        const c2 = ctxt_proto.c2
+        const c3 = ctxt_proto.c3
+        const nonce = ctxt_proto.nonce
+
+        // TODO: Check that skid is in G1*
+
+        const x_p = Helpers.xor(c2, this.ht(mcl.pairing(skid, c1)));
+
+        let msg_p;
+
         try {
-            const k = Helpers.xor(rec.K, Helpers.hashT(mcl.pairing(tr, rec.R2)));
-            // If the decryption fails, it throws an error.
-            const aux = crypto_secretbox_open_easy(rec.c, rec.ctxt_nonce, k);
-            return to_string(aux);
-        } catch (e) {
-            console.log("couldn't decrypt: " + e);
+            msg_p = crypto_secretbox_open_easy(c3, nonce, this.h4(x_p));
+        }
+        catch(e) {
             return undefined;
         }
+
+        // Additional verification.
+
+        const r_raw = this.h3(x_p, msg_p, id);
+
+        const r_p = new mcl.Fr();
+        r_p.setFromArray(r_raw);
+
+        const c1_p = mcl.mul(Helpers.baseG2(), r_p);
+
+        if (c1.isEqual(c1_p)) {
+            return msg_p;
+        }
+
+        return undefined;
     }
 }
 
 /**
  * New methods and definitions
  */
-class Helpers {
+export class Helpers {
     // from https://github.com/zcash/librustzcash/blob/6e0364cd42a2b3d2b958a54771ef51a8db79dd29/pairing/src/bls12_381/README.md#generators
     static baseG1(): mcl.G1 {
         const base = new mcl.G1();

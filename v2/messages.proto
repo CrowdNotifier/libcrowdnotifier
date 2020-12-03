@@ -12,28 +12,69 @@ message QRCodeEntry {
   LocationData data = 2;
 }
 
+message MasterTrace {
+  bytes mpk = 1;
+  bytes mskv = 2;
+  bytes mskhEnc = 3;
+  string info = 4;
+  bytes nonce1 = 5;
+  bytes nonce2 = 6;
+}
+
+message EntProof {
+  bytes nonce1 = 1;
+  bytes nonce2 = 2;
+}
+
 message LocationData {
   bytes ent = 1;
-  bytes pEnt = 2;
+  EntProof pEnt = 2;
   MasterTrace mtr = 3;
 }
 
-message MasterTrace {
-  bytes mskv = 1;
-  string info = 2;
-  bytes nonce = 3;
-  bytes mskHAEnc = 4;
+message PreTrace {
+  bytes id = 1;
+  bytes mskhEnc = 2;
+  bytes preskid = 3;
 }
 
-message Commitment {
+message TraceProof {
+    bytes mpk = 1;
+    bytes nonce1 = 2;
+    bytes nonce2 = 3;
+}
+
+message PreTraceWithProof {
+  PreTrace pretrace = 1;
+  TraceProof proof = 2;
+  string  info = 3;
+}
+
+message Trace {
+  bytes id = 1;
+  bytes skid = 2;
+}
+
+message IBEIdInternal1 {
   string info = 1;
   bytes nonce = 2;
-  uint32 counter = 3;
 }
 
-message PreTrace {
-    bytes Tprime = 1;
-    string info = 2;
-    bytes nonce = 3;
-    bytes ctxt = 4;
+message IBEIdInternal2 {
+  bytes hash = 1;
+  uint32 cnt = 2;
+  bytes nonce = 3;
+}
+
+message IBEEncInternal {
+  bytes x = 1;
+  bytes m = 2;
+  bytes id = 3;
+}
+
+message IBEEncryptedData {
+  bytes c1 = 1;
+  bytes c2 = 2;
+  bytes c3 = 3;
+  bytes nonce = 4;
 }
