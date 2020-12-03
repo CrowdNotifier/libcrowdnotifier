@@ -1,5 +1,4 @@
 import * as mcl from "mcl-wasm";
-import {crypto_hash_sha256} from "./sodium";
 
 export function waitReady(): Promise<undefined> {
     return new Promise((resolve) => {
@@ -20,7 +19,7 @@ export function add<T extends Fr | G1 | G2 | GT>(a: T, b: T): any {
         return new G2(mcl.add(a.mclG2, b.mclG2));
     }
     if (a instanceof GT && b instanceof GT) {
-        return new GT(mcl.add(a.mclGT, b.mclGT));
+        return new GT(mcl.mul(a.mclGT, b.mclGT));
     }
 }
 
@@ -35,7 +34,7 @@ export function mul(a: Fr | G1 | G2 | GT, b: Fr): any {
         return new G2(mcl.mul(a.mclG2, b.mclFr))
     }
     if (a instanceof GT) {
-        return new GT(mcl.mul(a.mclGT, b.mclFr))
+        return new GT(mcl.pow(a.mclGT, b.mclFr))
     }
     throw new Error("Cannot use this as input type")
 }
@@ -105,6 +104,10 @@ export class Fr {
 
     setByCSPRNG() {
         this.mclFr.setByCSPRNG();
+    }
+
+    setFromArray(arr: Uint8Array) {
+        this.mclFr.setLittleEndianMod(arr)
     }
 
     serialize(): Uint8Array {
