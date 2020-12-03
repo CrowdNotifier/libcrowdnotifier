@@ -1,7 +1,7 @@
-import {ILocationData, IUserRecord, Section7} from "./crypto";
+import {ILocationData, IPreTrace, CrowdNotifierPrimitives} from "./crypto";
 import {from_base64, to_base64} from "../lib/sodium";
 import * as mcl from "../lib/mcl";
-import {LocationData, MasterTrace, PreTrace, QRCodeEntry, QRCodeTrace} from "./proto";
+import {MasterTrace, PreTrace, LocationData, QRCodeEntry, QRCodeTrace, Trace, PreTraceWithProof} from "./proto";
 
 /**
  * The System package uses the crypto but only passes around base64 encoded protobuf messages. This helps to
@@ -13,7 +13,7 @@ import {LocationData, MasterTrace, PreTrace, QRCodeEntry, QRCodeTrace} from "./p
  * namespace.
  */
 export class HealthAuthority {
-    public keyPair = Section7.setupHA();
+    public keyPair = CrowdNotifierPrimitives.setupHealthAuthority();
 
     /**
      * In case of an infection notification, the
@@ -21,21 +21,44 @@ export class HealthAuthority {
      * @param counts sent by the health authority
      */
     createTraceEntry(preTrace64: string, counts: string): string {
-        const preTraceProto = PreTrace.decode(from_base64(preTrace64));
-        const Tprime = new mcl.G1();
-        Tprime.deserialize(preTraceProto.Tprime);
+        const preTraceWithProof = PreTraceWithProof.decode(from_base64(preTrace64));
+        const preTraceProto = preTraceWithProof.pretrace;
+        const traceProofProto = preTraceWithProof.proof;
+        const info = preTraceWithProof.info;
+
+        const preskid = new mcl.G1();
+        preskid.deserialize(preTraceProto.preskid);
+        const mpk = new mcl.G2()
+        mpk.deserialize(traceProofProto.mpk);
+
         const preTrace = {
-            Tprime,
-            info: preTraceProto.info,
-            nonce: preTraceProto.nonce,
-            ctxt: preTraceProto.ctxt,
-        }
+            id: preTraceProto.id,
+            mskhEnc: preTraceProto.mskhEnc,
+            preskid: preskid
+        };
+        const traceProof = {
+            mpk: mpk,
+            nonce1: traceProofProto.nonce1,
+            nonce2: traceProofProto.nonce2
+        };
+
         const count = parseInt(counts);
-        const trace = Section7.genTrace(this.keyPair, count, preTrace);
+        const trace = CrowdNotifierPrimitives.genTrace(this.keyPair, preTrace);
+
         if (trace === undefined) {
             throw new Error("couldn't create a trace.")
         }
-        return to_base64(trace.serialize());
+        if (!CrowdNotifierPrimitives.verifyTrace(info, count, trace, traceProof)) {
+            throw new Error("Invalid trace.")
+        }
+
+        const traceProto = {
+            id: trace.id,
+            skid: trace.skid.serialize()
+        }
+
+        const traceSer = Trace.encode(Trace.create(traceProto)).finish()
+        return to_base64(traceSer);
     }
 }
 
@@ -48,7 +71,7 @@ export class Location {
     constructor(healthAuthorityPubKey: Uint8Array,
                 locType: number, name: string, location: string, room: string) {
         const infoStr = [locType, name, location, room].join(":");
-        this.data = Section7.genCode(infoStr, healthAuthorityPubKey);
+        this.data = CrowdNotifierPrimitives.genCode(infoStr, healthAuthorityPubKey);
     }
 
     /**
@@ -62,23 +85,38 @@ export class Location {
     static preTrace(qrTrace: string, counts: string): string {
         const qrTrace64 = qrTrace.replace(/^.*#/, '');
         const mtrProto = QRCodeTrace.decode(from_base64(qrTrace64)).mtr;
+
+        const mpk = new mcl.G2();
+        mpk.deserialize(mtrProto.mpk);
         const mskv = new mcl.Fr();
         mskv.deserialize(mtrProto.mskv)
+
         const mtr = {
-            mskv,
+            mpk: mpk,
+            mskv: mskv,
+            mskhEnc: mtrProto.mskhEnc,
             info: mtrProto.info,
-            nonce: mtrProto.nonce,
-            mskHAEnc: mtrProto.mskHAEnc,
+            nonce1: mtrProto.nonce1,
+            nonce2: mtrProto.nonce2
         }
         const count = parseInt(counts);
-        const preTrace = Section7.genPreTrace(mtr, count);
-        const preTraceProto = PreTrace.create({
-            Tprime: preTrace.Tprime.serialize(),
-            info: preTrace.info,
-            nonce: preTrace.nonce,
-            ctxt: preTrace.ctxt,
-        })
-        return to_base64(PreTrace.encode(preTraceProto).finish());
+        const [preTrace, traceProof] = CrowdNotifierPrimitives.genPreTrace(mtr, count);
+        const preTraceProto = {
+            id: preTrace.id,
+            mskhEnc: preTrace.mskhEnc,
+            preskid: preTrace.preskid.serialize()
+        }
+        const traceProofProto = {
+            mpk: traceProof.mpk.serialize(),
+            nonce1: traceProof.nonce1,
+            nonce2: traceProof.nonce2
+        }
+        const preTraceWithProof = PreTraceWithProof.create({
+            pretrace: preTraceProto,
+            proof: traceProofProto,
+            info: mtrProto.info
+        });
+        return to_base64(PreTraceWithProof.encode(preTraceWithProof).finish());
     }
 
     /**
@@ -114,10 +152,12 @@ export class Location {
 
     private protoMTR(): MasterTrace {
         return new MasterTrace({
+            mpk: this.data.mtr.mpk.serialize(),
             mskv: this.data.mtr.mskv.serialize(),
+            mskhEnc: this.data.mtr.mskhEnc,
             info: this.data.mtr.info,
-            nonce: this.data.mtr.nonce,
-            mskHAEnc: this.data.mtr.mskHAEnc,
+            nonce1: this.data.mtr.nonce1,
+            nonce2: this.data.mtr.nonce2
         });
     }
 }
@@ -127,7 +167,7 @@ export class Location {
  */
 export class Visit {
     public identity: string;
-    private data: IUserRecord;
+    private data: Uint8Array;
 
     constructor(
         qrCodeEntry: string,
@@ -138,27 +178,34 @@ export class Visit {
         const qrBase64 = qrCodeEntry.replace(/^.*#/, '');
         const qrEntry = QRCodeEntry.decode(from_base64(qrBase64));
         if (qrEntry.version === undefined || qrEntry.version !== 2) {
-            throw new Error("didn't find 'version'");
+            throw new Error("Unknown version of QR code entry.");
         }
         if (qrEntry.data === undefined) {
-            throw new Error("didn't find 'data'");
+            throw new Error("Invalid QR code entry.");
         }
+
+        const mpk = new mcl.G2();
+        mpk.deserialize(qrEntry.data.mtr.mpk);
         const mskv = new mcl.Fr();
         mskv.deserialize(qrEntry.data.mtr.mskv);
-        const mtr = {
-            mskv,
-            info: qrEntry.data.mtr.info,
-            nonce: qrEntry.data.mtr.nonce,
-            mskHAEnc: qrEntry.data.mtr.mskHAEnc
-        };
         const ent = new mcl.G2();
         ent.deserialize(qrEntry.data.ent);
+
+        const mtr = {
+            mpk: mpk,
+            mskv: mskv,
+            mskhEnc: qrEntry.data.mtr.mskhEnc,
+            info: qrEntry.data.mtr.info,
+            nonce1: qrEntry.data.mtr.nonce1,
+            nonce2: qrEntry.data.mtr.nonce2
+        };
+
         const locationData: ILocationData = {
             ent: ent,
             pEnt: qrEntry.data.pEnt,
-            mtr
+            mtr: mtr
         };
-        this.data = Section7.scan(locationData.ent, locationData.pEnt, locationData.mtr.info,
+        this.data = CrowdNotifierPrimitives.scan(locationData.ent, locationData.pEnt, locationData.mtr.info,
             entry, diary ? locationData.mtr.info : "anonymous");
     }
 
@@ -170,9 +217,17 @@ export class Visit {
      */
     verifyExposure(traces: string[]): boolean {
         for (const trace of traces) {
-            const tr = new mcl.G1();
-            tr.deserialize(from_base64(trace))
-            const aux = Section7.match(this.data, tr);
+            const trProto = Trace.decode(from_base64(trace));
+
+            const skid = new mcl.G1();
+            skid.deserialize(trProto.skid);
+
+            const tr = {
+                id: trProto.id,
+                skid: skid
+            };
+
+            const aux = CrowdNotifierPrimitives.match(this.data, tr);
             if (aux !== undefined) {
                 this.identity = aux;
                 return true;
