@@ -30,6 +30,7 @@ async function main() {
     const preTrace1_1 = Location.preTrace(location1qrTrace, (counter1-1).toString());
     const preTrace1_2 = Location.preTrace(location1qrTrace, (counter1).toString());
     const preTrace1_3 = Location.preTrace(location1qrTrace, (counter1+1).toString());
+
     log.info("Location 1 got infected during three hours - creating traces");
     const trace1_1 = healthAuthority.createTraceEntry(preTrace1_1, (counter1-1).toString());
     const trace1_2 = healthAuthority.createTraceEntry(preTrace1_2, (counter1).toString());

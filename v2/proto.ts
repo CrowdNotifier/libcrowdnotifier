@@ -12,11 +12,11 @@ export class QRCodeEntry extends Message<QRCodeEntry> {
 
 export class MasterTrace extends Message<MasterTrace> {
     mpk: Uint8Array;
-    mskv: Uint8Array;
-    mskhEnc: Uint8Array;
-    info: string;
+    mskl: Uint8Array;
+    info: Uint8Array;
     nonce1: Uint8Array;
     nonce2: Uint8Array;
+    ctxtha: Uint8Array;
 }
 
 export class EntProof extends Message<EntProof> {
@@ -26,14 +26,14 @@ export class EntProof extends Message<EntProof> {
 
 export class LocationData extends Message<Location> {
     ent: Uint8Array;
-    pEnt: EntProof;
+    piEnt: EntProof;
     mtr: MasterTrace;
 }
 
 export class PreTrace extends Message<PreTrace> {
     id: Uint8Array;
-    mskhEnc: Uint8Array;
-    preskid: Uint8Array;
+    pskidl: Uint8Array;
+    ctxtha: Uint8Array;
 }
 
 export class TraceProof extends Message<TraceProof> {
@@ -45,7 +45,7 @@ export class TraceProof extends Message<TraceProof> {
 export class PreTraceWithProof extends Message<PreTraceWithProof> {
     pretrace: PreTrace;
     proof: TraceProof;
-    info: string;
+    info: Uint8Array;
 }
 
 export class Trace extends Message<Trace> {
@@ -54,7 +54,7 @@ export class Trace extends Message<Trace> {
 }
 
 export class IBEIdInternal1 extends Message<IBEIdInternal1> {
-    info: string;
+    info: Uint8Array;
     nonce: Uint8Array;
 }
 

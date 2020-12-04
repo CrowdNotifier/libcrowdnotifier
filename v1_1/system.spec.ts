@@ -1,5 +1,5 @@
 import {Log} from "../lib/log";
-import {waitReady} from "./crypto";
+import {waitReady} from "./crowdnotifier";
 import {HealthAuthority, Location, Visit} from "./system";
 
 const log = new Log("v1_1/system.spec");
