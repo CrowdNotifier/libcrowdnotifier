@@ -14,11 +14,11 @@ message QRCodeEntry {
 
 message MasterTrace {
   bytes mpk = 1;
-  bytes mskv = 2;
-  bytes mskhEnc = 3;
-  string info = 4;
-  bytes nonce1 = 5;
-  bytes nonce2 = 6;
+  bytes mskl = 2;
+  bytes info = 3;
+  bytes nonce1 = 4;
+  bytes nonce2 = 5;
+  bytes ctxtha = 6;
 }
 
 message EntProof {
@@ -28,14 +28,14 @@ message EntProof {
 
 message LocationData {
   bytes ent = 1;
-  EntProof pEnt = 2;
+  EntProof piEnt = 2;
   MasterTrace mtr = 3;
 }
 
 message PreTrace {
   bytes id = 1;
-  bytes mskhEnc = 2;
-  bytes preskid = 3;
+  bytes pskidl = 2;
+  bytes ctxtha = 3;
 }
 
 message TraceProof {
@@ -47,7 +47,7 @@ message TraceProof {
 message PreTraceWithProof {
   PreTrace pretrace = 1;
   TraceProof proof = 2;
-  string  info = 3;
+  bytes info = 3;
 }
 
 message Trace {
@@ -56,7 +56,7 @@ message Trace {
 }
 
 message IBEIdInternal1 {
-  string info = 1;
+  bytes info = 1;
   bytes nonce = 2;
 }
 

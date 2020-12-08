@@ -19,7 +19,7 @@ export function add<T extends Fr | G1 | G2 | GT>(a: T, b: T): any {
         return new G2(mcl.add(a.mclG2, b.mclG2));
     }
     if (a instanceof GT && b instanceof GT) {
-        return new GT(mcl.mul(a.mclGT, b.mclGT));
+        return new GT(mcl.add(a.mclGT, b.mclGT));
     }
 }
 
@@ -34,9 +34,13 @@ export function mul(a: Fr | G1 | G2 | GT, b: Fr): any {
         return new G2(mcl.mul(a.mclG2, b.mclFr))
     }
     if (a instanceof GT) {
-        return new GT(mcl.pow(a.mclGT, b.mclFr))
+        return new GT(mcl.mul(a.mclGT, b.mclFr))
     }
     throw new Error("Cannot use this as input type")
+}
+
+export function pow(a: GT, b: Fr): GT {
+    return new GT(mcl.pow(a.mclGT, b.mclFr));
 }
 
 export function hashAndMapToG1(s: string | Uint8Array): G1 {
@@ -61,6 +65,14 @@ export class G1 {
 
     isEqual(other: G1): boolean{
         return this.mclG1.isEqual(other.mclG1);
+    }
+
+    isZero(): boolean {
+        return this.mclG1.isZero();
+    }
+
+    isValidOrder(): boolean {
+        return this.mclG1.isValidOrder();
     }
 }
 
@@ -106,7 +118,7 @@ export class Fr {
         this.mclFr.setByCSPRNG();
     }
 
-    setFromArray(arr: Uint8Array) {
+    setLittleEndianMod(arr: Uint8Array) {
         this.mclFr.setLittleEndianMod(arr)
     }
 

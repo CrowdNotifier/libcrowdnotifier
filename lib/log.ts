@@ -25,13 +25,13 @@ export class Log {
   }
 
   assertTrue(result: boolean, ...msgs) {
-    if (!result) {
+    if (result !== true) {
       throw new Error([...msgs].join(":"));
     }
   }
 
   assertFalse(result: boolean, ...msgs) {
-    if (result) {
+    if (result !== false) {
       throw new Error([...msgs].join(":"));
     }
   }

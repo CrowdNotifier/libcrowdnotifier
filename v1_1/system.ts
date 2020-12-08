@@ -1,4 +1,4 @@
-import {CryptoV1_1, ILocationData, IVisit, tr} from "./crypto";
+import {CryptoV1_1, ILocationData, IVisit, tr} from "./crowdnotifier";
 import {
     compare,
     crypto_box_seal,
