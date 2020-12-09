@@ -49,6 +49,5 @@ async function main() {
 }
 
 main().catch(e => {
-    log.error(e);
-    console.log(e);
+    log.panic(e);
 });

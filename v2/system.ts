@@ -1,6 +1,6 @@
 import {IEncryptedData} from "./crypto";
 import {ILocationData, CrowdNotifierPrimitives} from "./crowdnotifier";
-import {from_base64, to_base64} from "../lib/sodium";
+import {from_base64, from_string, to_base64, to_string} from "../lib/sodium";
 import * as mcl from "../lib/mcl";
 import {MasterTrace, LocationData, QRCodeEntry, QRCodeTrace, Trace, PreTraceWithProof} from "./proto";
 
@@ -77,7 +77,7 @@ export class Location {
         location: string,
         room: string
     ) {
-        const infoStr = new TextEncoder().encode([locType, name, location, room].join(":"));
+        const infoStr = from_string([locType, name, location, room].join(":"));
         this.data = CrowdNotifierPrimitives.genCode(healthAuthorityPubKey, infoStr);
     }
 
@@ -214,7 +214,7 @@ export class Visit {
         const locationData: ILocationData = {ent, piEnt: qrEntry.data.piEnt, mtr};
 
         this.data = CrowdNotifierPrimitives.scan(locationData.ent, locationData.piEnt, locationData.mtr.info,
-            entry, diary ? locationData.mtr.info : new TextEncoder().encode("anonymous"));
+            entry, diary ? locationData.mtr.info : from_string("anonymous"));
     }
 
     /**
@@ -234,8 +234,7 @@ export class Visit {
 
             const aux = CrowdNotifierPrimitives.match(this.data, tr);
             if (aux !== undefined) {
-                const aux_u = new TextDecoder().decode(aux);
-                this.identity = aux_u;
+                this.identity = to_string(aux);
                 return true;
             }
         }
