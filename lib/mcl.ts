@@ -3,7 +3,7 @@ import * as mcl from "mcl-wasm";
 export function waitReady(): Promise<undefined> {
     return new Promise((resolve) => {
         mcl.init(mcl.BLS12_381).then(() => {
-            resolve();
+            resolve(undefined);
         })
     });
 }

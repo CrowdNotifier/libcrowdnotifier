@@ -1,6 +1,7 @@
 import {waitReady} from "./crypto";
 import {CrowdNotifierPrimitives} from "./crowdnotifier";
 import {Log} from "../lib/log";
+import {from_string} from "../lib/sodium";
 
 /**
  * Very simple crypto test for CrowdNotifierPrimitives using the new BNS scheme to avoid having to
@@ -18,18 +19,18 @@ log.info(`Starting at: ${new Date()}`);
 function testCrowdNotifierPrimitives() {
     log.info("Setting up backends");
     const HealthAuthority = CrowdNotifierPrimitives.setupHA();
-    const infoLocation1 = new TextEncoder().encode("FooBar:Lausanne:undefined");
+    const infoLocation1 = from_string("FooBar:Lausanne:undefined");
     const location1 = CrowdNotifierPrimitives.genCode(HealthAuthority.publicKey, infoLocation1);
-    const infoLocation2 = new TextEncoder().encode("BarMitzva:Lausanne:undefined");
+    const infoLocation2 = from_string("BarMitzva:Lausanne:undefined");
     const location2 = CrowdNotifierPrimitives.genCode(HealthAuthority.publicKey, infoLocation1);
 
     log.info("Creating two users");
     const counter1 = 1000;
-    const user1Aux = new TextEncoder().encode("secret date");
+    const user1Aux = from_string("secret date");
     const user1 = CrowdNotifierPrimitives.scan(location1.ent, location1.piEnt, infoLocation1, counter1, user1Aux);
 
     const counter2 = 1001;
-    const user2Aux = new TextEncoder().encode("PARTY!");
+    const user2Aux = from_string("PARTY!");
     const user2 = CrowdNotifierPrimitives.scan(location2.ent, location2.piEnt, infoLocation2, counter2, user2Aux);
 
     log.info("Location 1 got infected during three hours - creating pre-traces");
@@ -81,5 +82,5 @@ async function main(){
 
 
 main().catch(e => {
-    log.error(e);
+    log.panic(e);
 });

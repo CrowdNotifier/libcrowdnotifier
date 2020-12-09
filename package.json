@@ -6,10 +6,10 @@
   "version": "0.1.0",
   "private": false,
   "scripts": {
-    "start": "npm run testv1; npm run testv1_1; npm run testv2",
+    "start": "npm run testv1 && npm run testv1_1 && npm run testv2",
     "testv1": "npx ts-node v1/system.spec.ts",
     "testv1_1": "npx ts-node v1_1/system.spec.ts",
-    "testv2": "npx ts-node v2/crypto.spec.ts ; npx ts-node v2/crowdnotifier.spec.ts ; npx ts-node v2/system.spec.ts",
+    "testv2": "npx ts-node v2/crypto.spec.ts && npx ts-node v2/crowdnotifier.spec.ts && npx ts-node v2/system.spec.ts",
     "benchmarks": "npx ts-node v2/benchmarks.spec.ts"
   },
   "dependencies": {

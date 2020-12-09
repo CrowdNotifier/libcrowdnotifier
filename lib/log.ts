@@ -20,6 +20,11 @@ export class Log {
     }
   }
 
+  panic(err: Error){
+    this.info("Panic stack:", err.stack);
+    process.exit(1);
+  }
+
   error(err: Error) {
     this.info("Error:", err.toString());
   }

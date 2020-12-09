@@ -1,0 +1,23 @@
+name: JS test
+
+on:
+  pull_request:
+
+env:
+  NODE_VERSION: 10
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: test
+        run: |
+          npm ci
+          npm start
