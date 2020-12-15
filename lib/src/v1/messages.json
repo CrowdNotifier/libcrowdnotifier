@@ -1,0 +1,83 @@
+{
+  "nested": {
+    "crowdnotifier_v1": {
+      "nested": {
+        "VenueType": {
+          "fields": {}
+        },
+        "QRCodeContent": {
+          "fields": {
+            "version": {
+              "type": "int32",
+              "id": 1
+            },
+            "publicKey": {
+              "type": "bytes",
+              "id": 2
+            },
+            "name": {
+              "type": "string",
+              "id": 3
+            },
+            "location": {
+              "type": "string",
+              "id": 4
+            },
+            "room": {
+              "type": "string",
+              "id": 5
+            },
+            "venueType": {
+              "type": "VenueType",
+              "id": 6
+            },
+            "notificationKey": {
+              "type": "bytes",
+              "id": 7
+            }
+          }
+        },
+        "QRCodeWrapper": {
+          "fields": {
+            "version": {
+              "type": "int32",
+              "id": 1
+            },
+            "content": {
+              "type": "QRCodeContent",
+              "id": 2
+            },
+            "signature": {
+              "type": "bytes",
+              "id": 3
+            }
+          }
+        },
+        "SeedMessage": {
+          "fields": {
+            "salt": {
+              "type": "bytes",
+              "id": 1
+            },
+            "notificationKey": {
+              "type": "bytes",
+              "id": 2
+            },
+            "name": {
+              "type": "string",
+              "id": 3
+            },
+            "location": {
+              "type": "string",
+              "id": 4
+            },
+            "room": {
+              "type": "string",
+              "id": 5
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "nested": {
+    "crowdnotifier_v1_1": {
+      "nested": {
+        "LocationInfo": {
+          "fields": {
+            "version": {
+              "type": "int32",
+              "id": 1
+            },
+            "name": {
+              "type": "string",
+              "id": 2
+            },
+            "location": {
+              "type": "string",
+              "id": 3
+            },
+            "room": {
+              "type": "string",
+              "id": 4
+            },
+            "venueType": {
+              "type": "VenueType",
+              "id": 5
+            },
+            "notificationKey": {
+              "type": "bytes",
+              "id": 6
+            }
+          },
+          "nested": {
+            "VenueType": {
+              "values": {
+                "RESTAURANT": 0,
+                "BAR": 1,
+                "CINEMA": 2,
+                "SCHOOL": 3,
+                "PRIVATE": 4
+              }
+            }
+          }
+        },
+        "QRCodeContent": {
+          "fields": {
+            "version": {
+              "type": "int32",
+              "id": 1
+            },
+            "publicKey": {
+              "type": "bytes",
+              "id": 2
+            },
+            "r1": {
+              "type": "bytes",
+              "id": 3
+            },
+            "info": {
+              "type": "LocationInfo",
+              "id": 4
+            }
+          }
+        },
+        "QRCodeTrace": {
+          "fields": {
+            "version": {
+              "type": "int32",
+              "id": 1
+            },
+            "sk": {
+              "type": "bytes",
+              "id": 2
+            },
+            "r1": {
+              "type": "bytes",
+              "id": 3
+            },
+            "r2": {
+              "type": "bytes",
+              "id": 4
+            },
+            "info": {
+              "type": "LocationInfo",
+              "id": 5
+            }
+          }
+        }
+      }
+    }
+  }
+}

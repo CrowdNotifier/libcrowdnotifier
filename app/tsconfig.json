@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "build/",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "baseUrl": "."
+  },
+  "files": [
+    "./v2/*.ts"
+  ]
+}

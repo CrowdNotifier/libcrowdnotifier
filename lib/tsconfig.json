@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2017",
+    "moduleResolution": "node",
+    "declaration": true,
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "module": "CommonJS"
+  },
+  "ts-node": {
+    "files": true
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./types/*.d.ts"
+  ]
+}
