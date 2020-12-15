@@ -1,0 +1,192 @@
+{
+  "nested": {
+    "crowdnotifier_v2": {
+      "nested": {
+        "QRCodeTrace": {
+          "fields": {
+            "version": {
+              "type": "uint32",
+              "id": 1
+            },
+            "mtr": {
+              "type": "MasterTrace",
+              "id": 2
+            }
+          }
+        },
+        "QRCodeEntry": {
+          "fields": {
+            "version": {
+              "type": "uint32",
+              "id": 1
+            },
+            "data": {
+              "type": "LocationData",
+              "id": 2
+            }
+          }
+        },
+        "MasterTrace": {
+          "fields": {
+            "mpk": {
+              "type": "bytes",
+              "id": 1
+            },
+            "mskl": {
+              "type": "bytes",
+              "id": 2
+            },
+            "info": {
+              "type": "bytes",
+              "id": 3
+            },
+            "nonce1": {
+              "type": "bytes",
+              "id": 4
+            },
+            "nonce2": {
+              "type": "bytes",
+              "id": 5
+            },
+            "ctxtha": {
+              "type": "bytes",
+              "id": 6
+            }
+          }
+        },
+        "EntProof": {
+          "fields": {
+            "nonce1": {
+              "type": "bytes",
+              "id": 1
+            },
+            "nonce2": {
+              "type": "bytes",
+              "id": 2
+            }
+          }
+        },
+        "LocationData": {
+          "fields": {
+            "ent": {
+              "type": "bytes",
+              "id": 1
+            },
+            "piEnt": {
+              "type": "EntProof",
+              "id": 2
+            },
+            "mtr": {
+              "type": "MasterTrace",
+              "id": 3
+            }
+          }
+        },
+        "PreTrace": {
+          "fields": {
+            "id": {
+              "type": "bytes",
+              "id": 1
+            },
+            "pskidl": {
+              "type": "bytes",
+              "id": 2
+            },
+            "ctxtha": {
+              "type": "bytes",
+              "id": 3
+            }
+          }
+        },
+        "TraceProof": {
+          "fields": {
+            "mpk": {
+              "type": "bytes",
+              "id": 1
+            },
+            "nonce1": {
+              "type": "bytes",
+              "id": 2
+            },
+            "nonce2": {
+              "type": "bytes",
+              "id": 3
+            }
+          }
+        },
+        "PreTraceWithProof": {
+          "fields": {
+            "pretrace": {
+              "type": "PreTrace",
+              "id": 1
+            },
+            "proof": {
+              "type": "TraceProof",
+              "id": 2
+            },
+            "info": {
+              "type": "bytes",
+              "id": 3
+            }
+          }
+        },
+        "Trace": {
+          "fields": {
+            "id": {
+              "type": "bytes",
+              "id": 1
+            },
+            "skid": {
+              "type": "bytes",
+              "id": 2
+            }
+          }
+        },
+        "IBEIdInternal1": {
+          "fields": {
+            "info": {
+              "type": "bytes",
+              "id": 1
+            },
+            "nonce": {
+              "type": "bytes",
+              "id": 2
+            }
+          }
+        },
+        "IBEIdInternal2": {
+          "fields": {
+            "hash": {
+              "type": "bytes",
+              "id": 1
+            },
+            "cnt": {
+              "type": "uint32",
+              "id": 2
+            },
+            "nonce": {
+              "type": "bytes",
+              "id": 3
+            }
+          }
+        },
+        "IBEEncInternal": {
+          "fields": {
+            "x": {
+              "type": "bytes",
+              "id": 1
+            },
+            "m": {
+              "type": "bytes",
+              "id": 2
+            },
+            "id": {
+              "type": "bytes",
+              "id": 3
+            }
+          }
+        }
+      }
+    }
+  }
+}

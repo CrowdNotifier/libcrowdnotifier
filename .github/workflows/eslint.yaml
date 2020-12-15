@@ -1,4 +1,4 @@
-name: JS test
+name: ESLint
 
 on:
   pull_request:
@@ -17,15 +17,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: test lib
+      - name: lint lib
         run: |
           cd lib
-          npm ci
-          npm run test
-          npm run build
+          npm ci -D
+          npm run lint
 
       - name: test app
         run: |
           cd app
-          npm ci
-          npm run test
+          npm ci -D
+          npm run lint
