@@ -1,4 +1,4 @@
-import {IKeyPair, sodium, v1_1} from 'libcrowdnotifier';
+import {IKeyPair, sodium, v1_1} from '@c4dt/libcrowdnotifier';
 
 export interface ITrace {
     tr: v1_1.tr;

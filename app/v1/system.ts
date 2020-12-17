@@ -1,5 +1,4 @@
-import {IKeyPair, sodium} from 'libcrowdnotifier';
-import {v1} from 'libcrowdnotifier';
+import {IKeyPair, sodium, v1} from '@c4dt/libcrowdnotifier';
 
 /**
  * The System package uses the crypto but only passes around base64

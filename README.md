@@ -28,7 +28,7 @@ The following repositories hold further information about the project:
 
 * Android SDK: [crowdnotifier-sdk-android](https://github.com/CrowdNotifier/crowdnotifier-sdk-android)
 * iOS SDK: [crowdnotifier-sdk-ios](https://github.com/CrowdNotifier/crowdnotifier-sdk-ios)
-* TypeScript Reference Implementation: [crowdnotifier-ts](https://github.com/CrowdNotifier/crowdnotifier-ts)
+* TypeScript Reference Implementation and library: [libcrowdnotifier](https://github.com/CrowdNotifier/libcrowdnotifier)
 * Android Demo App: [notifyme-app-android](https://github.com/notifyme-app/notifyme-app-android)
 * iOS Demo App: [notifyme-app-ios](https://github.com/notifyme-app/notifyme-app-ios)
 * Backend SDK: [notifyme-sdk-backend](https://github.com/notifyme-app/notifyme-sdk-backend)
@@ -38,9 +38,9 @@ The following repositories hold further information about the project:
 
 ## Work in Progress
 
-The CrowdNotifier protocol is undergoing changes to improve its security and privacy properties. See 
-[CrowdNotifier](https://github.com/CrowdNotifier/documents) for updates on the design. This reference implementation
-will be updated to reflect these changes.
+The CrowdNotifier protocol underwent changes to improve its security and privacy properties. See 
+[CrowdNotifier](https://github.com/CrowdNotifier/documents) for updates on the design. 
+This reference implementation reflects the latest changes as of 2020/12/17
 
 # CrowdNotifier Reference Implementation
 
@@ -64,35 +64,46 @@ This figure shows the steps to publish a trace location:
 - Being able to print intermediate results for test data
 - Insert test data from the main
 - Test with different versions of the QRCode
+- Offer a library for other apps
 
 ## Directories
 
-- lib - types of mcl and sodium libraries
-- [v1](v1/README.md) - first crypto implementation early November 2020
-- [v1_1](V1_1/README.md) - improved crypto implementation without switching ed25519/curve25519,
-according to the white paper from the 26th of November 2020
-- [v2](v2/README.md) - latest changes in crowdNotifier - section7
-- app - DEFUNCT - the previous app all in one
+- [lib](lib/README.md) - the library of the v2 version, including the old v1 and v1_1 for reference
+- [app](app/README.md) - example of how to use the library in an app
 
 ## Starting the tests
 
-To start the tests, run the following commands:
+To start the tests of the library, run the following commands:
 
 ```
-npm ci
-npm start
+cd lib
+npm ci -D
+npm run test
 ```
 
-[Section7 README](v2/README.md)
+For the tests of the app, go into the app-directory, and do the same:
 
-## Next Steps
+```
+cd app
+npm ci -D
+npm run test
+```
 
-This reference implementation is just to show how the pieces fit together from a programmers' perspective.
-The following steps are in the pipeline:
+# Library usage
 
-- separate the crypto in its own package - done
-- implement latest changes in CrowdNotifier white paper - done
-- use it as a web-app
+To use the library, first you need to install it:
+
+```
+npm i -S @c4dt/libcrowdnotifier
+```
+
+If you're using libsodium or mcl in your own app, be sure to import them from the libcrowdnotifier
+package! This is a limitation due to the fact that both libsodium and mcl need to initialize first.
+If you're using your own libsodium and mcl imports, node will treat them as a separate package!
+
+# Versions
+
+- 1.0.0 - 20/12/17 - first version 
 
 # Contributing
 

@@ -1,5 +1,5 @@
 import {
-  genCode, genPreTrace, genTrace, ILocationData,
+  genCode, genPreTrace, genTrace, IEncryptedData, ILocationData,
   LocationData,
   MasterTrace, match,
   mcl,
@@ -8,8 +8,7 @@ import {
   setupHA,
   sodium,
   Trace, verifyTrace,
-} from 'libcrowdnotifier';
-import {IEncryptedData} from 'libcrowdnotifier/dist/v2/ibe_primitives';
+} from '@c4dt/libcrowdnotifier';
 
 /**
  * The System package uses the crypto but only passes around
@@ -193,7 +192,7 @@ export class Location {
  * The user has zero or more instances of Visit in his phone.
  */
 export class Visit {
-    public identity: string;
+    public identity = 'undefined';
     private readonly data: IEncryptedData;
 
     constructor(

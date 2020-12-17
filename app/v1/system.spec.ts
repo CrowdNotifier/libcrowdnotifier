@@ -1,4 +1,4 @@
-import {Log, sodium} from 'libcrowdnotifier';
+import {Log, sodium} from '@c4dt/libcrowdnotifier';
 import {HealthAuthority, Location, Visit} from './system';
 
 const log = new Log('v1/system.spec');
