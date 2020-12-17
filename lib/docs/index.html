@@ -1,0 +1,250 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>@c4dt/libcrowdnotifier</title>
+	<meta name="description" content="Documentation for @c4dt/libcrowdnotifier">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">@c4dt/libcrowdnotifier</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1>@c4dt/libcrowdnotifier</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#libcrowdnotifier" id="libcrowdnotifier" style="color: inherit; text-decoration: none;">
+					<h1>LibCrowdNotifier</h1>
+				</a>
+				<p>This is the library implementing the cryptographic primitives for the CrowdNotifier system.
+					The white paper explains how a privacy-preserving presence tracking system can be set up without the need of a
+					central authority that keeps all identities stored.
+					Similar to DP3T, all critical, personally identifiable information is stored on the phone of the user.
+				The central server only stores encrypted data about locations that were visited by a person tested positive to CoVid19.</p>
+				<p>As there were several versions of the white paper, this library allows the use of any of them.
+				The versions are:</p>
+				<ul>
+					<li>v1 - first version where the information of the location needed to be updated after every notification</li>
+					<li>v1_1 - like v1, but with some cryptographic cleanups: no signature anymore, thus only use of <code>curve25519</code></li>
+					<li>v2 - using identity based encryption with a pairing based crypto system. This removes the need to re-create the
+					information of the locations after every notification</li>
+				</ul>
+				<p>The app available under <a href="https://notify-me.ch">https://notify-me.ch</a> as of December 15th 2020 uses v1 of the protocol.
+				Work is under way to update the app to version v2, and we hope that it will be available early January 2021.</p>
+				<p>A simple implementation of the app can be found in [../app].
+				This shows how the different parts of the scheme work together.</p>
+				<a href="#v2---latest-version" id="v2---latest-version" style="color: inherit; text-decoration: none;">
+					<h2>V2 - Latest Version</h2>
+				</a>
+				<p>This directory holds the reference implementation of the latest version of the white paper:</p>
+				<ul>
+					<li>ibe_primitives.ts implements the identity based encryption according to <a href="http://www.isg.rhul.ac.uk/~prai175/PatersonS08.pdf">Security and Anonymity of Identity-Based
+							Encryption with Multiple Trusted Authorities by Kenneth G. Paterson and Sriramkrishnan
+					Srinivasan</a></li>
+					<li>crowd_notifier_primitives.ts implements the latest version of the crowd-notifier white paper</li>
+					<li>messages.proto defines the messages stored in the QRcodes</li>
+				</ul>
+				<a href="#use-the-library" id="use-the-library" style="color: inherit; text-decoration: none;">
+					<h2>Use the library</h2>
+				</a>
+				<p>In order to use the library, first install it in your package:</p>
+				<pre><code><span class="hljs-built_in">npm</span> i -S libcrowdnotifier</code></pre>
+				<p>Then you can use it as shown in <code>../app/v2/system.ts</code>.
+					All methods in libcrowdnotifier are as close as possible to the methods in the white paper.
+				This allows easy verification of the scheme.</p>
+				<a href="#run-the-tests" id="run-the-tests" style="color: inherit; text-decoration: none;">
+					<h2>Run the tests</h2>
+				</a>
+				<p>To run the tests, type the following:</p>
+				<pre><code><span class="hljs-built_in">npm</span> ci
+<span class="hljs-built_in">npm</span> start</code></pre>
+				<p>This will run the tests for the IBE primitives and the CrowdNotifier primitives.
+				To run the benchmarks, type the following:</p>
+				<pre><code>npm <span class="hljs-keyword">run</span><span class="bash"> benchmarks</span></code></pre>
+				<a href="#older-versions" id="older-versions" style="color: inherit; text-decoration: none;">
+					<h1>Older versions</h1>
+				</a>
+				<p>For reference, the older versions are also available:</p>
+				<a href="#v1" id="v1" style="color: inherit; text-decoration: none;">
+					<h2>v1</h2>
+				</a>
+				<p>This directory holds the reference implementation of version 1 from early November 2020.
+				It is based on libsodium and uses ed25519 and curve25519 for the signature and encryption. </p>
+				<ul>
+					<li>crowdnotifier.ts implements the primitives of the scheme</li>
+				</ul>
+				<a href="#v1_1" id="v1_1" style="color: inherit; text-decoration: none;">
+					<h3>v1_1</h3>
+				</a>
+				<p>With regard to v1, this removes the signature using ed25519 and replaces it with a simple hash scheme.</p>
+				<ul>
+					<li>crowdnotifier.ts implements the primitives of the scheme</li>
+				</ul>
+				<a href="#authors" id="authors" style="color: inherit; text-decoration: none;">
+					<h1>Authors</h1>
+				</a>
+				<p>This code has been written by Linus Gasser for the <a href="https://C4DT.org">https://C4DT.org</a>
+					It is based on a white paper written by Wouter Lueks*, Seda Gürses, Michael Veale, Edouard Bugnion, Marcel Salathé,
+				Kenneth G.Paterson, and Carmela Troncoso.</p>
+				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
+					<h1>License</h1>
+				</a>
+				<p>The code is licensed under MPLv2.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class="label tsd-is-external">
+						<span>Internals</span>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_index_.html">&quot;src/index&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_log_.html">&quot;src/log&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v1_crowdnotifier_.html">&quot;src/v1/crowdnotifier&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v1_index_.html">&quot;src/v1/index&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v1_proto_.html">&quot;src/v1/proto&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v1_1_crowdnotifier_.html">&quot;src/v1_<wbr>1/crowdnotifier&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v1_1_index_.html">&quot;src/v1_<wbr>1/index&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v1_1_proto_.html">&quot;src/v1_<wbr>1/proto&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v2_benchmarks_spec_.html">&quot;src/v2/benchmarks.spec&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v2_crowd_notifier_primitives_.html">&quot;src/v2/crowd_<wbr>notifier_<wbr>primitives&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v2_crowd_notifier_primitives_spec_.html">&quot;src/v2/crowd_<wbr>notifier_<wbr>primitives.spec&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v2_helpers_.html">&quot;src/v2/helpers&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v2_ibe_primitives_.html">&quot;src/v2/ibe_<wbr>primitives&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v2_ibe_primitives_spec_.html">&quot;src/v2/ibe_<wbr>primitives.spec&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v2_index_.html">&quot;src/v2/index&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v2_proto_.html">&quot;src/v2/proto&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_src_v2_structs_.html">&quot;src/v2/structs&quot;</a>
+					</li>
+					<li class="label tsd-is-external">
+						<span>Externals</span>
+					</li>
+					<li class=" tsd-kind-module tsd-is-external">
+						<a href="modules/_src_v1_messages_.html">&quot;src/v1/messages&quot;</a>
+					</li>
+					<li class=" tsd-kind-module tsd-is-external">
+						<a href="modules/_src_v1_1_messages_.html">&quot;src/v1_<wbr>1/messages&quot;</a>
+					</li>
+					<li class=" tsd-kind-module tsd-is-external">
+						<a href="modules/_src_v2_messages_.html">&quot;src/v2/messages&quot;</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

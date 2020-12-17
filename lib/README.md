@@ -40,6 +40,10 @@ Then you can use it as shown in `../app/v2/system.ts`.
 All methods in libcrowdnotifier are as close as possible to the methods in the white paper.
 This allows easy verification of the scheme.
 
+## Documentation
+
+The documentation can be found on https://crowdnotifier.github.io/libcrowdnotifier
+
 ## Run the tests
 
 To run the tests, type the following:

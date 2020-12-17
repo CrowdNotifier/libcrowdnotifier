@@ -7,6 +7,7 @@
   "private": false,
   "scripts": {
     "build": "npx tsc --build tsconfig.json",
+    "doc": "typedoc --tsconfig tsconfig.json --out docs src/ types/",
     "lint": "npx eslint src/*/*ts src/*ts",
     "lint:fix": "npx eslint --fix src/*/*ts src/*ts",
     "test": "npx ts-node src/v2/crowd_notifier_primitives.spec.ts && npx ts-node src/v2/ibe_primitives.spec.ts",
@@ -23,6 +24,7 @@
     "eslint": "^7.15.0",
     "eslint-config-google": "^0.14.0",
     "ts-node": "^9.0.0",
+    "typedoc": "^0.19.2",
     "typescript": "^4.0.5"
   },
   "main": "dist/index.js",
