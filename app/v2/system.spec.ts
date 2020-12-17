@@ -1,4 +1,4 @@
-import {Log, waitReady} from 'libcrowdnotifier';
+import {Log, waitReady} from '@c4dt/libcrowdnotifier';
 import {HealthAuthority, Location, Visit} from './system';
 
 const log = new Log('v2/system.spec');

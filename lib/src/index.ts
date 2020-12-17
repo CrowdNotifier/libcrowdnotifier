@@ -4,6 +4,7 @@ import {
   genCode,
   genPreTrace,
   genTrace,
+  IEncryptedData,
   ILocationData,
   LocationData,
   MasterTrace,
@@ -30,7 +31,7 @@ export interface IKeyPair {
 export {
   // CrowdNotifierPrimitives
   setupHA, genCode, scan, genPreTrace, genTrace, verifyTrace, match,
-  waitReady,
+  waitReady, IEncryptedData,
   // Proto structures needed
   PreTraceWithProof, Trace, QRCodeTrace, QRCodeEntry, LocationData, MasterTrace,
   // Structures

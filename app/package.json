@@ -1,6 +1,6 @@
 {
   "name": "libcrowdnotifier-system",
-  "repository": "https://github.com/CrowdNotifier/crowdnotifier-ts",
+  "repository": "https://github.com/CrowdNotifier/libcrowdnotifier",
   "license": "MPL-2.0",
   "author": "Linus Gasser <linus.gasser@epfl.ch>",
   "version": "1.0.0",
@@ -14,7 +14,7 @@
     "testv2": "npx ts-node v2/system.spec.ts"
   },
   "dependencies": {
-    "libcrowdnotifier": "file:../lib",
+    "@c4dt/libcrowdnotifier": "file:../lib",
     "libsodium-wrappers-sumo": "^0.7.8",
     "mcl-wasm": "^0.7.1",
     "protobufjs": "^6.10.2"
