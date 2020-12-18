@@ -103,7 +103,7 @@ If you're using your own libsodium and mcl imports, node will treat them as a se
 
 # Versions
 
-- 1.0.0 - 20/12/17 - first version 
+- 1.0.0 - 20/12/17 - First version 
 
 # Contributing
 
