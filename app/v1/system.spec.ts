@@ -45,6 +45,11 @@ async function main() {
       'Shouldn\'t match counter-1');
   const match = visit1.verifyExposure([trace1_2]);
   log.reject(match, undefined, 'Should match counter');
+  if (match === undefined) {
+    // Make typescript-strict happy,
+    // as it doesn't recognize log.reject will fail with match === undefined.
+    return;
+  }
   const [from, to] = match.split('::', 2).map((str) => parseInt(str));
   log.assert([from, to], [counter1, counter1], 'Should return correct time');
   log.assert(visit1.verifyExposure([trace1_3]), undefined,

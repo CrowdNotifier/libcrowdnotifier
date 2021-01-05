@@ -1,12 +1,17 @@
 {
   "compilerOptions": {
+    "strict": true,
     "target": "es2017",
-    "module": "CommonJS",
     "moduleResolution": "node",
-    "outDir": "dist/",
+    "declaration": true,
+    "outDir": "./dist",
+    "baseUrl": ".",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "baseUrl": "."
+    "module": "CommonJS"
+  },
+  "ts-node": {
+    "files": true
   },
   "file": [
     "index.ts"

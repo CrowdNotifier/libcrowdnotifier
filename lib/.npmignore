@@ -1,4 +1,3 @@
 src/*
 .eslintrc.js
 Makefile
-tsconfig.json
