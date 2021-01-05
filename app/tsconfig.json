@@ -3,12 +3,13 @@
     "target": "es2017",
     "module": "CommonJS",
     "moduleResolution": "node",
-    "outDir": "build/",
+    "outDir": "dist/",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "baseUrl": "."
   },
-  "files": [
-    "./v2/*.ts"
+  "include": [
+    "./v*/*.ts",
+    "./*.ts"
   ]
 }
