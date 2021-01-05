@@ -8,8 +8,7 @@
     "esModuleInterop": true,
     "baseUrl": "."
   },
-  "include": [
-    "./v*/*.ts",
-    "./*.ts"
+  "file": [
+    "index.ts"
   ]
 }
