@@ -1,4 +1,4 @@
-import {IBEIdInternal1, IBEIdInternal2} from './proto';
+import {IBEIdentityInternal} from './proto';
 import mcl from 'mcl-wasm';
 import {crypto_hash_sha256} from 'libsodium-wrappers-sumo';
 
@@ -50,26 +50,23 @@ export function xor(a: Uint8Array, b: Uint8Array): Uint8Array {
 
 
 /**
-     * Generate an identifier.
-     * @param info public information
-     * @param cnt counter
-     * @param nonce1 a nonce
-     * @param nonce2 an other nonce
-     * @return an identifier
-     */
+  * Generate an identifier.
+  * @param info public information
+  * @param counter counter
+  * @param nonce1 a nonce
+  * @param nonce2 an other nonce
+  * @return an identifier
+  */
 export function genId(info: Uint8Array,
-    cnt: number,
+    counter: number,
     nonce1: Uint8Array,
     nonce2: Uint8Array): Uint8Array {
   const hash1 = crypto_hash_sha256(
-      IBEIdInternal1.encode(
-          IBEIdInternal1.create({info, nonce: nonce1}),
-      ).finish(),
-  );
+      Uint8Array.from([...info, ...nonce1]) );
 
   return crypto_hash_sha256(
-      IBEIdInternal2.encode(
-          IBEIdInternal2.create({hash: hash1, cnt, nonce: nonce2}),
+      IBEIdentityInternal.encode(
+          IBEIdentityInternal.create({hash: hash1, counter, nonce: nonce2}),
       ).finish(),
   );
 }

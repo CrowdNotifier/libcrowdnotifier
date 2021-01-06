@@ -27,5 +27,5 @@ jobs:
       - name: test app
         run: |
           cd app
-          npm ci
+          npm i @c4dt/libcrowdnotifier@file:../lib
           npm run test

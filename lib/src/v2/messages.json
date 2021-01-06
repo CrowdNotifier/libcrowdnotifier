@@ -8,31 +8,19 @@
               "type": "uint32",
               "id": 1
             },
-            "mtr": {
+            "masterTraceRecord": {
               "type": "MasterTrace",
-              "id": 2
-            }
-          }
-        },
-        "QRCodeEntry": {
-          "fields": {
-            "version": {
-              "type": "uint32",
-              "id": 1
-            },
-            "data": {
-              "type": "LocationData",
               "id": 2
             }
           }
         },
         "MasterTrace": {
           "fields": {
-            "mpk": {
+            "masterPublicKey": {
               "type": "bytes",
               "id": 1
             },
-            "mskl": {
+            "masterSecretKeyLocation": {
               "type": "bytes",
               "id": 2
             },
@@ -48,13 +36,70 @@
               "type": "bytes",
               "id": 5
             },
-            "ctxtha": {
+            "cipherTextHealthAuthority": {
               "type": "bytes",
               "id": 6
             }
           }
         },
-        "EntProof": {
+        "QRCodeEntry": {
+          "fields": {
+            "version": {
+              "type": "uint32",
+              "id": 1
+            },
+            "data": {
+              "type": "QRCodeContent",
+              "id": 2
+            },
+            "masterPublicKey": {
+              "type": "bytes",
+              "id": 3
+            },
+            "entryProof": {
+              "type": "EntryProof",
+              "id": 4
+            }
+          }
+        },
+        "QRCodeContent": {
+          "fields": {
+            "name": {
+              "type": "string",
+              "id": 1
+            },
+            "location": {
+              "type": "string",
+              "id": 2
+            },
+            "room": {
+              "type": "string",
+              "id": 3
+            },
+            "venueType": {
+              "type": "VenueType",
+              "id": 4
+            }
+          },
+          "nested": {
+            "VenueType": {
+              "values": {
+                "OTHER": 0,
+                "MEETING_ROOM": 1,
+                "CAFETERIA": 2,
+                "PRIVATE_EVENT": 3,
+                "CANTEEN": 4,
+                "LIBRARY": 5,
+                "LECTURE_ROOM": 6,
+                "SHOP": 7,
+                "GYM": 8,
+                "KITCHEN_AREA": 9,
+                "OFFICE_SPACE": 10
+              }
+            }
+          }
+        },
+        "EntryProof": {
           "fields": {
             "nonce1": {
               "type": "bytes",
@@ -66,33 +111,17 @@
             }
           }
         },
-        "LocationData": {
-          "fields": {
-            "ent": {
-              "type": "bytes",
-              "id": 1
-            },
-            "piEnt": {
-              "type": "EntProof",
-              "id": 2
-            },
-            "mtr": {
-              "type": "MasterTrace",
-              "id": 3
-            }
-          }
-        },
         "PreTrace": {
           "fields": {
-            "id": {
+            "identity": {
               "type": "bytes",
               "id": 1
             },
-            "pskidl": {
+            "partialSecretKeyForIdentityOfLocation": {
               "type": "bytes",
               "id": 2
             },
-            "ctxtha": {
+            "cipherTextHealthAuthority": {
               "type": "bytes",
               "id": 3
             }
@@ -100,7 +129,7 @@
         },
         "TraceProof": {
           "fields": {
-            "mpk": {
+            "masterPublicKey": {
               "type": "bytes",
               "id": 1
             },
@@ -116,7 +145,7 @@
         },
         "PreTraceWithProof": {
           "fields": {
-            "pretrace": {
+            "preTrace": {
               "type": "PreTrace",
               "id": 1
             },
@@ -132,35 +161,23 @@
         },
         "Trace": {
           "fields": {
-            "id": {
+            "identity": {
               "type": "bytes",
               "id": 1
             },
-            "skid": {
+            "secretKeyForIdentity": {
               "type": "bytes",
               "id": 2
             }
           }
         },
-        "IBEIdInternal1": {
-          "fields": {
-            "info": {
-              "type": "bytes",
-              "id": 1
-            },
-            "nonce": {
-              "type": "bytes",
-              "id": 2
-            }
-          }
-        },
-        "IBEIdInternal2": {
+        "IBEIdentityInternal": {
           "fields": {
             "hash": {
               "type": "bytes",
               "id": 1
             },
-            "cnt": {
+            "counter": {
               "type": "uint32",
               "id": 2
             },
@@ -170,7 +187,7 @@
             }
           }
         },
-        "IBEEncInternal": {
+        "IBEEncryptionInternal": {
           "fields": {
             "x": {
               "type": "bytes",
@@ -180,7 +197,7 @@
               "type": "bytes",
               "id": 2
             },
-            "id": {
+            "identity": {
               "type": "bytes",
               "id": 3
             }

@@ -21,11 +21,11 @@ async function main() {
   log.info('Creating two visits');
   const counter1 = 1000;
   const visit1 =
-      new Visit(location1.getQRentry(urlEntry), counter1, counter1, true);
+      new Visit(location1.getQRentry(urlEntry), counter1, true);
 
   const counter2 = 1001;
   const visit2 =
-      new Visit(location2.getQRentry(urlEntry), counter2, counter2, true);
+      new Visit(location2.getQRentry(urlEntry), counter2, true);
 
   log.info('Location 1 got infected during three hours - creating pre-traces');
   const preTrace1_1 =

@@ -4,70 +4,81 @@ package crowdnotifier_v2;
 
 message QRCodeTrace {
   uint32 version = 1;
-  MasterTrace mtr = 2;
+  MasterTrace masterTraceRecord = 2;
+}
+
+message MasterTrace {
+  bytes masterPublicKey = 1;
+  bytes masterSecretKeyLocation = 2;
+  bytes info = 3;
+  bytes nonce1 = 4;
+  bytes nonce2 = 5;
+  bytes cipherTextHealthAuthority = 6;
 }
 
 message QRCodeEntry {
   uint32 version = 1;
-  LocationData data = 2;
+  QRCodeContent data = 2;
+  bytes masterPublicKey = 3;
+  EntryProof entryProof = 4;
 }
 
-message MasterTrace {
-  bytes mpk = 1;
-  bytes mskl = 2;
-  bytes info = 3;
-  bytes nonce1 = 4;
-  bytes nonce2 = 5;
-  bytes ctxtha = 6;
+message QRCodeContent {
+  string name = 1;
+  string location = 2;
+  string room = 3;
+  enum VenueType {
+    OTHER = 0;
+    MEETING_ROOM = 1;
+    CAFETERIA = 2;
+    PRIVATE_EVENT = 3;
+    CANTEEN = 4;
+    LIBRARY = 5;
+    LECTURE_ROOM = 6;
+    SHOP = 7;
+    GYM = 8;
+    KITCHEN_AREA = 9;
+    OFFICE_SPACE = 10;
+  }
+  VenueType venueType = 4;
 }
 
-message EntProof {
+message EntryProof {
   bytes nonce1 = 1;
   bytes nonce2 = 2;
 }
 
-message LocationData {
-  bytes ent = 1;
-  EntProof piEnt = 2;
-  MasterTrace mtr = 3;
-}
-
 message PreTrace {
-  bytes id = 1;
-  bytes pskidl = 2;
-  bytes ctxtha = 3;
+  bytes identity = 1;
+  bytes partialSecretKeyForIdentityOfLocation = 2;
+  bytes cipherTextHealthAuthority = 3;
 }
 
 message TraceProof {
-    bytes mpk = 1;
-    bytes nonce1 = 2;
-    bytes nonce2 = 3;
+  bytes masterPublicKey = 1;
+  bytes nonce1 = 2;
+  bytes nonce2 = 3;
 }
 
 message PreTraceWithProof {
-  PreTrace pretrace = 1;
+  PreTrace preTrace = 1;
   TraceProof proof = 2;
   bytes info = 3;
 }
 
 message Trace {
-  bytes id = 1;
-  bytes skid = 2;
+  bytes identity = 1;
+  bytes secretKeyForIdentity = 2;
 }
 
-message IBEIdInternal1 {
-  bytes info = 1;
-  bytes nonce = 2;
-}
-
-message IBEIdInternal2 {
+message IBEIdentityInternal {
   bytes hash = 1;
-  uint32 cnt = 2;
+  uint32 counter = 2;
   bytes nonce = 3;
 }
 
-message IBEEncInternal {
+message IBEEncryptionInternal {
   bytes x = 1;
   bytes m = 2;
-  bytes id = 3;
+  bytes identity = 3;
 }

@@ -7,7 +7,7 @@ import {
   ready,
 } from 'libsodium-wrappers-sumo';
 import mcl from 'mcl-wasm';
-import {IBEEncInternal} from './proto';
+import {IBEEncryptionInternal} from './proto';
 import {baseG2, xor} from './helpers';
 
 /**
@@ -158,8 +158,8 @@ function ht(gt_elem: mcl.GT): Uint8Array {
  * @return hash of the values
  */
 function h3(x: Uint8Array, m: Uint8Array, id: Uint8Array): Uint8Array {
-  const to_hash = IBEEncInternal.encode(
-      IBEEncInternal.create({x, m, id}),
+  const to_hash = IBEEncryptionInternal.encode(
+      IBEEncryptionInternal.create({x, m, id}),
   ).finish();
   return crypto_hash_sha256(to_hash);
 }

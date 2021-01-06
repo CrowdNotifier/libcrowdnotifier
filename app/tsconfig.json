@@ -8,6 +8,7 @@
     "baseUrl": ".",
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "typeRoots": ["./node_modules/@c4dt/libcrowdnotifier/types", "./node_modules/@types"],
     "module": "CommonJS"
   },
   "ts-node": {
@@ -15,5 +16,5 @@
   },
   "file": [
     "index.ts"
-  ]
+    ]
 }

@@ -9,14 +9,14 @@ export interface IMasterTrace {
     ctxtha: Uint8Array;
 }
 
-export interface IEntProof {
+export interface IEntryProof {
     nonce1: Uint8Array;
     nonce2: Uint8Array;
 }
 
 export interface ILocationData {
     ent: mcl.G2;
-    piEnt: IEntProof;
+    pEnt: IEntryProof;
     mtr: IMasterTrace;
 }
 

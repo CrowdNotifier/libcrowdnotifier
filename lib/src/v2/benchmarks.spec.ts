@@ -101,7 +101,7 @@ function benchmark_encryption_round() {
 
   log.info(`Start benchmark for encryption round with ${nr_exp} experiments.`);
 
-  const [mpk, msk] = keyGen();
+  const [masterPublicKey, msk] = keyGen();
 
   for (let i = 0; i < nr_exp; ++i) {
     ids[i] = randombytes_buf(id_len);
@@ -110,10 +110,10 @@ function benchmark_encryption_round() {
   }
 
   for (let i = 0; i < nr_exp; ++i) {
-    const id = ids[i];
+    const identity = ids[i];
     const t0 = performance.now();
-    const ctxt = enc(mpk, id, msgs[i]);
-    const msgDec = dec(id, skids[i], ctxt);
+    const ctxt = enc(masterPublicKey, identity, msgs[i]);
+    const msgDec = dec(identity, skids[i], ctxt);
     if (msgDec === undefined) {
       throw new Error('couldn\'t decrypt');
     }
@@ -144,7 +144,7 @@ function benchmark_bad_decrypt() {
 
   log.info(`Start benchmark for bad decryption with ${nr_exp} experiments.`);
 
-  const mpka = keyGen()[0];
+  const masterPublicKey = keyGen()[0];
   const mskb = keyGen()[1];
 
   for (let i = 0; i < nr_exp; ++i) {
@@ -154,10 +154,10 @@ function benchmark_bad_decrypt() {
   }
 
   for (let i = 0; i < nr_exp; ++i) {
-    const id = ids[i];
-    const ctxt = enc(mpka, id, msgs[i]);
+    const identity = ids[i];
+    const ctxt = enc(masterPublicKey, identity, msgs[i]);
     const t0 = performance.now();
-    const msgDec = dec(id, skids[i], ctxt);
+    const msgDec = dec(identity, skids[i], ctxt);
     const t1 = performance.now();
     times[i] = t1 - t0;
 
@@ -237,13 +237,13 @@ function benchmark() {
 
   statistics(t_kg);
 
-  const [mpk, msk] = keyGen();
+  const [masterPublicKey, msk] = keyGen();
 
   log.info('Encryption');
 
   for (let i = 0; i < nr_exp; ++i) {
     const t0 = performance.now();
-    const ctxt = enc(mpk, ids[i], msgs[i]);
+    const ctxt = enc(masterPublicKey, ids[i], msgs[i]);
     const t1 = performance.now();
     ctxts[i] = ctxt;
     t_enc[i] = t1 - t0;
@@ -255,9 +255,9 @@ function benchmark() {
 
   for (let i = 0; i < nr_exp; ++i) {
     const t0 = performance.now();
-    const skid = keyDer(msk, ids[i]);
+    const secretKeyForIdentity = keyDer(msk, ids[i]);
     const t1 = performance.now();
-    skids[i] = skid;
+    skids[i] = secretKeyForIdentity;
     t_kd[i] = t1 - t0;
   }
 

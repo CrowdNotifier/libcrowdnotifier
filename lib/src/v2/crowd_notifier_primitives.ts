@@ -9,14 +9,14 @@ import {
 import {dec, enc, IEncryptedData,
   keyDer, keyGen, NONCE_LENGTH} from './ibe_primitives';
 import mcl from 'mcl-wasm';
-import {IEntProof, ILocationData, IMasterTrace,
+import {IEntryProof, ILocationData, IMasterTrace,
   IPreTrace, ITrace, ITraceProof} from './structs';
 import {genId} from './helpers';
 
 
 /**
- * Implements the cryptographic protocol in section 4.2 of the
- * CrowdNotifier whitepaper.
+ * Implements the cryptographic protocol in section B.1 of the
+ * CrowdNotifier white paper.
  */
 
 /**
@@ -31,7 +31,7 @@ export function setupHA(): IKeyPair {
  * Creates the data necessary for a location owner.
  * @param pkh public key of the health authority
  * @param info public info of the location, e.g., name:location:room
- * @return the LocationData to be printed in multiple QR codes
+ * @return the QRCodeContent to be printed in multiple QR codes
  */
 export function genCode(pkh: Uint8Array, info: Uint8Array): ILocationData {
   const [mpkl, mskl] = keyGen();
@@ -42,29 +42,29 @@ export function genCode(pkh: Uint8Array, info: Uint8Array): ILocationData {
 
   const ctxtha = crypto_box_seal(mskha.serialize(), pkh);
 
-  const piEnt = {nonce1, nonce2};
-  const mtr = {mpk, mskl, ctxtha, info, nonce1, nonce2};
+  const pEnt = {nonce1, nonce2};
+  const mtr = {mpk, mskl, info, nonce1, nonce2, ctxtha};
 
-  return {ent: mpk, piEnt, mtr};
+  return {ent: mpk, pEnt, mtr};
 }
 
 
 /**
  * Creates a private record for the user to store in her phone.
  * @param ent as presented in the QRentry
- * @param piEnt as presented in the QRentry
+ * @param pEnt as presented in the QRentry
  * @param info as presented in the QRentry
  * @param cnt count of hours since UNIX epoch
  * @param aux free data
  * @return user record to be stored
  */
 export function scan(ent: mcl.G2,
-    piEnt: IEntProof,
+    pEnt: IEntryProof,
     info: Uint8Array,
     cnt: number,
     aux: Uint8Array): IEncryptedData {
   const mpk = ent;
-  const {nonce1, nonce2} = piEnt;
+  const {nonce1, nonce2} = pEnt;
   const id = genId(info, cnt, nonce1, nonce2);
   return enc(mpk, id, aux);
 }
@@ -79,17 +79,23 @@ export function scan(ent: mcl.G2,
  */
 export function genPreTrace(mtr: IMasterTrace, cnt: number):
     [IPreTrace, ITraceProof] {
-  const id = genId(mtr.info, cnt, mtr.nonce1, mtr.nonce2);
-  const pskidl = keyDer(mtr.mskl, id);
+  const {mpk, mskl, info, nonce1, nonce2, ctxtha} = mtr;
+  const id = genId(info, cnt, nonce1, nonce2);
+  const pskidl = keyDer(mskl, id);
 
-  const ptr = {id, pskidl, ctxtha: mtr.ctxtha};
-  const piTr = {
-    mpk: mtr.mpk,
-    nonce1: mtr.nonce1,
-    nonce2: mtr.nonce2,
+  const ptr = {id,
+    pskidl,
+    ctxtha};
+
+  // ctxtha is omitted here because the ITraceProof is always found with a
+  // IPreTrace.
+  const pTr = {
+    mpk,
+    nonce1,
+    nonce2,
   };
 
-  return [ptr, piTr];
+  return [ptr, pTr];
 }
 
 
@@ -103,20 +109,23 @@ export function genPreTrace(mtr: IMasterTrace, cnt: number):
  */
 export function genTrace(keys_ha: IKeyPair, ptr: IPreTrace):
     (ITrace | undefined) {
+  const {id, pskidl, ctxtha} = ptr;
+
   const mskh = new mcl.Fr();
   try {
     // libsodium requires both private and public key to decrypt ctxtha.
     const mskh_raw =
-        crypto_box_seal_open(ptr.ctxtha, keys_ha.publicKey, keys_ha.privateKey);
+        crypto_box_seal_open(ctxtha,
+            keys_ha.publicKey, keys_ha.privateKey);
     mskh.deserialize(mskh_raw);
   } catch (e) {
     return undefined;
   }
-  const pskidha = keyDer(mskh, ptr.id);
+  const pskidha = keyDer(mskh, id);
 
-  const skid = mcl.add(ptr.pskidl, pskidha);
+  const skid = mcl.add(pskidl, pskidha);
 
-  return {id: ptr.id, skid};
+  return {id, skid};
 }
 
 
@@ -125,21 +134,22 @@ export function genTrace(keys_ha: IKeyPair, ptr: IPreTrace):
  * @param info as presented in the QRentry
  * @param cnt count of hours since UNIX epoch
  * @param tr trace information
- * @param piTr proof of the trace information
+ * @param pTr proof of the trace information
  */
 export function verifyTrace(info: Uint8Array,
     cnt: number,
     tr: ITrace,
-    piTr: ITraceProof): boolean {
-  const id = genId(info, cnt, piTr.nonce1, piTr.nonce2);
+    pTr: ITraceProof): boolean {
+  const {id, skid} = tr;
+  const {mpk, nonce1, nonce2} = pTr;
 
-  if (compare(id, tr.id) !== 0) {
+  if (compare(id, genId(info, cnt, nonce1, nonce2)) !== 0) {
     return false;
   }
 
   const msg_orig = randombytes_buf(NONCE_LENGTH);
-  const msg_enc = enc(piTr.mpk, id, msg_orig);
-  const msg_dec = dec(id, tr.skid, msg_enc);
+  const ctxt = enc(mpk, id, msg_orig);
+  const msg_dec = dec(id, skid, ctxt);
   if (msg_dec === undefined) {
     return false;
   }
@@ -157,5 +167,6 @@ export function verifyTrace(info: Uint8Array,
  */
 export function match(rec: IEncryptedData, tr: ITrace):
     (Uint8Array | undefined) {
-  return dec(tr.id, tr.skid, rec);
+  const {id, skid} = tr;
+  return dec(id, skid, rec);
 }
