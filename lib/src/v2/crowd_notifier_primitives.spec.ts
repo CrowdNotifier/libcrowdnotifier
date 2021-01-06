@@ -29,12 +29,12 @@ function testCrowdNotifierPrimitives() {
   const counter1 = 1000;
   const user1Aux = from_string('secret date');
   const user1 =
-      scan(location1.ent, location1.piEnt, infoLocation1, counter1, user1Aux);
+      scan(location1.ent, location1.pEnt, infoLocation1, counter1, user1Aux);
 
   const counter2 = 1001;
   const user2Aux = from_string('PARTY!');
   const user2 =
-      scan(location2.ent, location2.piEnt, infoLocation2, counter2, user2Aux);
+      scan(location2.ent, location2.pEnt, infoLocation2, counter2, user2Aux);
 
   log.info('Location 1 got infected during three hours - creating pre-traces');
   const [preTrace1_1, tr_proof1_1] = genPreTrace(location1.mtr, counter1 - 1);

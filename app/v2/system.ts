@@ -1,9 +1,9 @@
 import {
   genCode, genPreTrace, genTrace, IEncryptedData, ILocationData,
-  LocationData,
+  QRCodeContent,
   MasterTrace, match,
   mcl,
-  PreTraceWithProof,
+  PreTrace, TraceProof, PreTraceWithProof,
   QRCodeEntry, QRCodeTrace, scan,
   setupHA,
   sodium,
@@ -31,22 +31,23 @@ export class HealthAuthority {
     createTraceEntry(preTrace64: string, counts: string): string {
       const preTraceWithProof =
           PreTraceWithProof.decode(sodium.from_base64(preTrace64));
-      const preTraceProto = preTraceWithProof.pretrace;
+      const preTraceProto = preTraceWithProof.preTrace;
       const traceProofProto = preTraceWithProof.proof;
       const info = preTraceWithProof.info;
 
-      const pskidl = new mcl.G1();
-      pskidl.deserialize(preTraceProto.pskidl);
-      const mpk = new mcl.G2();
-      mpk.deserialize(traceProofProto.mpk);
+      const partialSecretKeyForIdentityOfLocation = new mcl.G1();
+      partialSecretKeyForIdentityOfLocation
+          .deserialize(preTraceProto.partialSecretKeyForIdentityOfLocation);
+      const masterPublicKey = new mcl.G2();
+      masterPublicKey.deserialize(traceProofProto.masterPublicKey);
 
       const preTrace = {
-        id: preTraceProto.id,
-        ctxtha: preTraceProto.ctxtha,
-        pskidl,
+        id: preTraceProto.identity,
+        ctxtha: preTraceProto.cipherTextHealthAuthority,
+        pskidl: partialSecretKeyForIdentityOfLocation,
       };
       const traceProof = {
-        mpk,
+        mpk: masterPublicKey,
         nonce1: traceProofProto.nonce1,
         nonce2: traceProofProto.nonce2,
       };
@@ -62,8 +63,8 @@ export class HealthAuthority {
       }
 
       const traceProto = {
-        id: trace.id,
-        skid: trace.skid.serialize(),
+        identity: trace.id,
+        secretKeyForIdentity: trace.skid.serialize(),
       };
 
       const traceSer = Trace.encode(Trace.create(traceProto)).finish();
@@ -80,14 +81,27 @@ export class Location {
 
     constructor(
         healthAuthorityPubKey: Uint8Array,
-        locType: number,
+        public venueType: number,
+        public name: string,
+        public location: string,
+        public room: string,
+    ) {
+      const infoBinary =
+          Location.info_to_binary(venueType, name, location, room);
+      this.data = genCode(healthAuthorityPubKey, infoBinary);
+    }
+
+    static info_to_binary(
+        venueType: number,
         name: string,
         location: string,
         room: string,
-    ) {
-      const infoStr =
-          sodium.from_string([locType, name, location, room].join(':'));
-      this.data = genCode(healthAuthorityPubKey, infoStr);
+    ): Uint8Array {
+      return sodium.from_string([venueType, name, location, room].join(':'));
+    }
+
+    static binary_to_info(bin: Uint8Array): string[] {
+      return sodium.to_string(bin).split('::');
     }
 
 
@@ -103,37 +117,39 @@ export class Location {
      */
     static preTrace(qrTrace: string, counts: string): string {
       const qrTrace64 = qrTrace.replace(/^.*#/, '');
-      const mtrProto = QRCodeTrace.decode(sodium.from_base64(qrTrace64)).mtr;
+      const masterTraceRecordProto =
+          QRCodeTrace.decode(sodium.from_base64(qrTrace64)).masterTraceRecord;
 
-      const mpk = new mcl.G2();
-      mpk.deserialize(mtrProto.mpk);
-      const mskl = new mcl.Fr();
-      mskl.deserialize(mtrProto.mskl);
+      const masterPublicKey = new mcl.G2();
+      masterPublicKey.deserialize(masterTraceRecordProto.masterPublicKey);
+      const masterSecretKeyLocation = new mcl.Fr();
+      masterSecretKeyLocation
+          .deserialize(masterTraceRecordProto.masterSecretKeyLocation);
 
-      const mtr = {
-        mpk,
-        mskl,
-        info: mtrProto.info,
-        nonce1: mtrProto.nonce1,
-        nonce2: mtrProto.nonce2,
-        ctxtha: mtrProto.ctxtha,
+      const masterTraceRecord = {
+        mpk: masterPublicKey,
+        mskl: masterSecretKeyLocation,
+        info: masterTraceRecordProto.info,
+        nonce1: masterTraceRecordProto.nonce1,
+        nonce2: masterTraceRecordProto.nonce2,
+        ctxtha: masterTraceRecordProto.cipherTextHealthAuthority,
       };
       const count = parseInt(counts);
-      const [preTrace, traceProof] = genPreTrace(mtr, count);
-      const preTraceProto = {
-        id: preTrace.id,
-        ctxtha: preTrace.ctxtha,
-        pskidl: preTrace.pskidl.serialize(),
-      };
-      const traceProofProto = {
-        mpk: traceProof.mpk.serialize(),
+      const [preTrace, traceProof] = genPreTrace(masterTraceRecord, count);
+      const preTraceProto = PreTrace.create({
+        identity: preTrace.id,
+        cipherTextHealthAuthority: preTrace.ctxtha,
+        partialSecretKeyForIdentityOfLocation: preTrace.pskidl.serialize(),
+      });
+      const traceProofProto = TraceProof.create({
+        masterPublicKey: traceProof.mpk.serialize(),
         nonce1: traceProof.nonce1,
         nonce2: traceProof.nonce2,
-      };
+      });
       const preTraceWithProof = PreTraceWithProof.create({
-        pretrace: preTraceProto,
+        preTrace: preTraceProto,
         proof: traceProofProto,
-        info: mtrProto.info,
+        info: masterTraceRecordProto.info,
       });
       return sodium.to_base64(PreTraceWithProof
           .encode(preTraceWithProof).finish());
@@ -148,7 +164,7 @@ export class Location {
     getQRtrace(baseURL: string): string {
       const qrTrace = new QRCodeTrace({
         version: 2,
-        mtr: this.protoMTR(),
+        masterTraceRecord: this.protoMTR(),
       });
       return `${baseURL}#`+
           `${sodium.to_base64(QRCodeTrace.encode(qrTrace).finish())}`;
@@ -162,14 +178,17 @@ export class Location {
      * @param baseURL - anything - is ignored and removed afterwards.
      */
     getQRentry(baseURL: string): string {
-      const mtr = this.protoMTR();
-      const data = LocationData.create({
-        ent: this.data.ent.serialize(),
-        piEnt: this.data.piEnt,
-        mtr,
+      const data = QRCodeContent.create({
+        name: this.name,
+        location: this.location,
+        room: this.room,
+        venueType: this.venueType,
       });
       const qrEntry = QRCodeEntry.create({
-        version: 2, data,
+        version: 2,
+        data,
+        masterPublicKey: this.data.ent.serialize(),
+        entryProof: this.data.pEnt,
       });
       return `${baseURL}#`+
           `${sodium.to_base64(QRCodeEntry.encode(qrEntry).finish())}`;
@@ -178,12 +197,12 @@ export class Location {
 
     private protoMTR(): MasterTrace {
       return new MasterTrace({
-        mpk: this.data.mtr.mpk.serialize(),
-        mskl: this.data.mtr.mskl.serialize(),
+        masterPublicKey: this.data.mtr.mpk.serialize(),
+        masterSecretKeyLocation: this.data.mtr.mskl.serialize(),
         info: this.data.mtr.info,
         nonce1: this.data.mtr.nonce1,
         nonce2: this.data.mtr.nonce2,
-        ctxtha: this.data.mtr.ctxtha,
+        cipherTextHealthAuthority: this.data.mtr.ctxtha,
       });
     }
 }
@@ -197,8 +216,7 @@ export class Visit {
 
     constructor(
         qrCodeEntry: string,
-        entry: number,
-        departure: number,
+        entryTime: number,
         diary?: boolean,
     ) {
       const qrBase64 = qrCodeEntry.replace(/^.*#/, '');
@@ -210,29 +228,16 @@ export class Visit {
         throw new Error('Invalid QR code entry.');
       }
 
-      const mpk = new mcl.G2();
-      mpk.deserialize(qrEntry.data.mtr.mpk);
-      const mskl = new mcl.Fr();
-      mskl.deserialize(qrEntry.data.mtr.mskl);
-      const ent = new mcl.G2();
-      ent.deserialize(qrEntry.data.ent);
+      const masterPublicKey = new mcl.G2();
+      masterPublicKey.deserialize(qrEntry.masterPublicKey);
 
-      const mtr = {
-        mpk,
-        mskl,
-        info: qrEntry.data.mtr.info,
-        nonce1: qrEntry.data.mtr.nonce1,
-        nonce2: qrEntry.data.mtr.nonce2,
-        ctxtha: qrEntry.data.mtr.ctxtha,
-      };
-
-      const locationData: ILocationData = {ent, piEnt: qrEntry.data.piEnt, mtr};
-
-      this.data = scan(locationData.ent,
-          locationData.piEnt,
-          locationData.mtr.info,
-          entry,
-          diary ? locationData.mtr.info : sodium.from_string('anonymous'));
+      const info = Location.info_to_binary(qrEntry.data.venueType,
+          qrEntry.data.name, qrEntry.data.location, qrEntry.data.room);
+      this.data = scan(masterPublicKey,
+          qrEntry.entryProof,
+          info,
+          entryTime,
+          diary ? info : sodium.from_string('anonymous'));
     }
 
     /**
@@ -246,10 +251,10 @@ export class Visit {
       for (const trace of traces) {
         const trProto = Trace.decode(sodium.from_base64(trace));
 
-        const skid = new mcl.G1();
-        skid.deserialize(trProto.skid);
+        const secretKeyForIdentity = new mcl.G1();
+        secretKeyForIdentity.deserialize(trProto.secretKeyForIdentity);
 
-        const tr = {id: trProto.id, skid};
+        const tr = {id: trProto.identity, skid: secretKeyForIdentity};
 
         const aux = match(this.data, tr);
         if (aux !== undefined) {

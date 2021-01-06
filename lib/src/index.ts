@@ -6,9 +6,11 @@ import {
   genTrace,
   IEncryptedData,
   ILocationData,
-  LocationData,
+  QRCodeContent,
   MasterTrace,
   match,
+  PreTrace,
+  TraceProof,
   PreTraceWithProof,
   QRCodeEntry,
   QRCodeTrace,
@@ -33,7 +35,8 @@ export {
   setupHA, genCode, scan, genPreTrace, genTrace, verifyTrace, match,
   waitReady, IEncryptedData,
   // Proto structures needed
-  PreTraceWithProof, Trace, QRCodeTrace, QRCodeEntry, LocationData, MasterTrace,
+  PreTraceWithProof, Trace, PreTrace, TraceProof,
+  QRCodeTrace, QRCodeEntry, QRCodeContent, MasterTrace,
   // Structures
   ILocationData,
   // old versions of the protocol
