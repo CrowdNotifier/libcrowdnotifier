@@ -72,7 +72,7 @@ export function enc(mpk: mcl.G2, id: Uint8Array, m: Uint8Array):
   const x = randombytes_buf(NONCE_LENGTH);
 
   const r = new mcl.Fr();
-  r.setHashOf(Uint8Array.from([...x, ...m, ...id]));
+  r.setHashOf(Uint8Array.from([...x, ...id, ...m]));
 
   const c1: mcl.G2 = mcl.mul(baseG2(), r);
 
@@ -111,7 +111,7 @@ export function dec(id: Uint8Array, skid: mcl.G1, ctxt: IEncryptedData):
   // Additional verification.
 
   const r_p = new mcl.Fr();
-  r_p.setHashOf(Uint8Array.from([...x_p, ...msg_p, ...id]));
+  r_p.setHashOf(Uint8Array.from([...x_p, ...id, ...msg_p]));
 
   const c1_p = mcl.mul(baseG2(), r_p);
 

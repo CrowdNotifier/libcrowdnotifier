@@ -31,11 +31,6 @@ export function baseG2(): mcl.G2 {
 }
 
 
-export function hashT(gt: mcl.GT): Uint8Array {
-  return crypto_hash_sha256(gt.serialize());
-}
-
-
 export function xor(a: Uint8Array, b: Uint8Array): Uint8Array {
   if (a.length !== b.length) {
     throw new Error('cannot xor two Uint8Arrays of different length');
@@ -64,5 +59,5 @@ export function genId(info: Uint8Array,
       Uint8Array.from([...info, ...nonce1]) );
 
   return crypto_hash_sha256(Uint8Array.from(
-      [...hash1, ...from_string(counter.toString()), ...nonce2]));
+      [...hash1, ...nonce2, ...from_string(counter.toString())]));
 }

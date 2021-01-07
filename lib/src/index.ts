@@ -9,6 +9,7 @@ import {
   QRCodeContent,
   MasterTrace,
   match,
+  baseG1, baseG2, genId,
   PreTrace,
   TraceProof,
   PreTraceWithProof,
@@ -34,6 +35,7 @@ export {
   // CrowdNotifierPrimitives
   setupHA, genCode, scan, genPreTrace, genTrace, verifyTrace, match,
   waitReady, IEncryptedData,
+  baseG1, baseG2, genId,
   // Proto structures needed
   PreTraceWithProof, Trace, PreTrace, TraceProof,
   QRCodeTrace, QRCodeEntry, QRCodeContent, MasterTrace,
