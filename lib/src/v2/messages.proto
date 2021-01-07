@@ -70,15 +70,3 @@ message Trace {
   bytes identity = 1;
   bytes secretKeyForIdentity = 2;
 }
-
-message IBEIdentityInternal {
-  bytes hash = 1;
-  uint32 counter = 2;
-  bytes nonce = 3;
-}
-
-message IBEEncryptionInternal {
-  bytes x = 1;
-  bytes m = 2;
-  bytes identity = 3;
-}
