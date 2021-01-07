@@ -16,7 +16,7 @@
     "testv2": "npx ts-node v2/system.spec.ts"
   },
   "dependencies": {
-    "@c4dt/libcrowdnotifier": "file:../lib",
+    "@c4dt/libcrowdnotifier": "^1.0.4",
     "libsodium-wrappers-sumo": "^0.7.8",
     "mcl-wasm": "^0.7.1",
     "protobufjs": "^6.10.2"
