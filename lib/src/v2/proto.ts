@@ -139,24 +139,6 @@ export class Trace extends Message<Trace> {
     secretKeyForIdentity: Uint8Array;
 }
 
-export class IBEIdentityInternal extends Message<IBEIdentityInternal> {
-    // @ts-ignore
-    hash: Uint8Array;
-    // @ts-ignore
-    counter: number;
-    // @ts-ignore
-    nonce: Uint8Array;
-}
-
-export class IBEEncryptionInternal extends Message<IBEEncryptionInternal> {
-    // @ts-ignore
-    x: Uint8Array;
-    // @ts-ignore
-    m: Uint8Array;
-    // @ts-ignore
-    identity: Uint8Array;
-}
-
 try {
   const protoRoot = Root.fromJSON(protoJSON);
   protoRoot.lookupType('crowdnotifier_v2.QRCodeTrace').ctor = QRCodeTrace;
@@ -169,10 +151,6 @@ try {
   protoRoot.lookupType('crowdnotifier_v2.PreTraceWithProof').ctor =
       PreTraceWithProof;
   protoRoot.lookupType('crowdnotifier_v2.Trace').ctor = Trace;
-  protoRoot.lookupType('crowdnotifier_v2.IBEIdentityInternal').ctor =
-      IBEIdentityInternal;
-  protoRoot.lookupType('crowdnotifier_v2.IBEEncryptionInternal').ctor =
-      IBEEncryptionInternal;
 } catch (e) {
   throw new Error('couldn\'t load messages.proto: ' + e.toString());
 }

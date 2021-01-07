@@ -1,6 +1,5 @@
-import {IBEIdentityInternal} from './proto';
 import mcl from 'mcl-wasm';
-import {crypto_hash_sha256} from 'libsodium-wrappers-sumo';
+import {crypto_hash_sha256, from_string} from 'libsodium-wrappers-sumo';
 
 /**
  * New methods and definitions
@@ -64,9 +63,6 @@ export function genId(info: Uint8Array,
   const hash1 = crypto_hash_sha256(
       Uint8Array.from([...info, ...nonce1]) );
 
-  return crypto_hash_sha256(
-      IBEIdentityInternal.encode(
-          IBEIdentityInternal.create({hash: hash1, counter, nonce: nonce2}),
-      ).finish(),
-  );
+  return crypto_hash_sha256(Uint8Array.from(
+      [...hash1, ...from_string(counter.toString()), ...nonce2]));
 }

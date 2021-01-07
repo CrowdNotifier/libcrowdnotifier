@@ -7,7 +7,6 @@ import {
   ready,
 } from 'libsodium-wrappers-sumo';
 import mcl from 'mcl-wasm';
-import {IBEEncryptionInternal} from './proto';
 import {baseG2, xor} from './helpers';
 
 /**
@@ -72,10 +71,8 @@ export function enc(mpk: mcl.G2, id: Uint8Array, m: Uint8Array):
     IEncryptedData {
   const x = randombytes_buf(NONCE_LENGTH);
 
-  const r_raw = h3(x, m, id);
-
   const r = new mcl.Fr();
-  r.setLittleEndianMod(r_raw);
+  r.setHashOf(Uint8Array.from([...x, ...m, ...id]));
 
   const c1: mcl.G2 = mcl.mul(baseG2(), r);
 
@@ -113,10 +110,8 @@ export function dec(id: Uint8Array, skid: mcl.G1, ctxt: IEncryptedData):
 
   // Additional verification.
 
-  const r_raw = h3(x_p, msg_p, id);
-
   const r_p = new mcl.Fr();
-  r_p.setLittleEndianMod(r_raw);
+  r_p.setHashOf(Uint8Array.from([...x_p, ...msg_p, ...id]));
 
   const c1_p = mcl.mul(baseG2(), r_p);
 
@@ -148,20 +143,6 @@ function h1(msg: Uint8Array): mcl.G1 {
  */
 function ht(gt_elem: mcl.GT): Uint8Array {
   return crypto_hash_sha256(gt_elem.serialize());
-}
-
-/**
- * Hash a message, an identifier and a nonce to a cryptographically secure hash.
- * @param x nonce
- * @param m message
- * @param id identifier
- * @return hash of the values
- */
-function h3(x: Uint8Array, m: Uint8Array, id: Uint8Array): Uint8Array {
-  const to_hash = IBEEncryptionInternal.encode(
-      IBEEncryptionInternal.create({x, m, id}),
-  ).finish();
-  return crypto_hash_sha256(to_hash);
 }
 
 /**
