@@ -11,6 +11,10 @@
             "masterTraceRecord": {
               "type": "MasterTrace",
               "id": 2
+            },
+            "notificationKey": {
+              "type": "bytes",
+              "id": 3
             }
           }
         },
@@ -62,6 +66,18 @@
             }
           }
         },
+        "EntryProof": {
+          "fields": {
+            "nonce1": {
+              "type": "bytes",
+              "id": 1
+            },
+            "nonce2": {
+              "type": "bytes",
+              "id": 2
+            }
+          }
+        },
         "QRCodeContent": {
           "fields": {
             "name": {
@@ -79,6 +95,18 @@
             "venueType": {
               "type": "VenueType",
               "id": 4
+            },
+            "notificationKey": {
+              "type": "bytes",
+              "id": 5
+            },
+            "validFrom": {
+              "type": "uint64",
+              "id": 6
+            },
+            "validTo": {
+              "type": "uint64",
+              "id": 7
             }
           },
           "nested": {
@@ -99,18 +127,6 @@
             }
           }
         },
-        "EntryProof": {
-          "fields": {
-            "nonce1": {
-              "type": "bytes",
-              "id": 1
-            },
-            "nonce2": {
-              "type": "bytes",
-              "id": 2
-            }
-          }
-        },
         "PreTrace": {
           "fields": {
             "identity": {
@@ -124,6 +140,14 @@
             "cipherTextHealthAuthority": {
               "type": "bytes",
               "id": 3
+            },
+            "message": {
+              "type": "string",
+              "id": 4
+            },
+            "notificationKey": {
+              "type": "bytes",
+              "id": 5
             }
           }
         },

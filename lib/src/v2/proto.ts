@@ -6,6 +6,8 @@ export class QRCodeTrace extends Message<QRCodeTrace> {
     version: number;
     // @ts-ignore
     masterTraceRecord: MasterTrace;
+    // @ts-ignore
+    notificationKey: Uint8Array;
 }
 
 export class MasterTrace extends Message<MasterTrace> {
@@ -75,6 +77,12 @@ export class QRCodeContent extends Message<QRCodeContent> {
     room: string;
     // @ts-ignore
     venueType: EVenueType;
+    // @ts-ignore
+    notificationKey: Uint8Array;
+    // @ts-ignore
+    validFrom: number; // msec since unix epoch
+    // @ts-ignore
+    validTo: number; // msec since unix epoch
 
     getVenueTypeStr(): string {
       switch (this.venueType) {
@@ -102,6 +110,22 @@ export class QRCodeContent extends Message<QRCodeContent> {
           return 'Office Space';
       }
     }
+
+    getValidFrom(): Date {
+      return new Date(this.validFrom);
+    }
+
+    setValidFrom(d: Date) {
+      this.validFrom = d.getTime();
+    }
+
+    getValidTo(): Date {
+      return new Date(this.validTo);
+    }
+
+    setValidTo(d: Date) {
+      this.validTo = d.getTime();
+    }
 }
 
 export class PreTrace extends Message<PreTrace> {
@@ -111,6 +135,10 @@ export class PreTrace extends Message<PreTrace> {
     partialSecretKeyForIdentityOfLocation: Uint8Array;
     // @ts-ignore
     cipherTextHealthAuthority: Uint8Array;
+    // @ts-ignore
+    message: string;
+    // @ts-ignore
+    notificationKey: Uint8Array;
 }
 
 export class TraceProof extends Message<TraceProof> {

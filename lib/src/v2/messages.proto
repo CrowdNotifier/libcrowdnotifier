@@ -5,6 +5,7 @@ package crowdnotifier_v2;
 message QRCodeTrace {
   uint32 version = 1;
   MasterTrace masterTraceRecord = 2;
+  bytes notificationKey = 3;
 }
 
 message MasterTrace {
@@ -21,6 +22,11 @@ message QRCodeEntry {
   QRCodeContent data = 2;
   bytes masterPublicKey = 3;
   EntryProof entryProof = 4;
+}
+
+message EntryProof {
+  bytes nonce1 = 1;
+  bytes nonce2 = 2;
 }
 
 message QRCodeContent {
@@ -41,17 +47,17 @@ message QRCodeContent {
     OFFICE_SPACE = 10;
   }
   VenueType venueType = 4;
-}
-
-message EntryProof {
-  bytes nonce1 = 1;
-  bytes nonce2 = 2;
+  bytes notificationKey = 5;
+  uint64 validFrom = 6; // msec since unix epoch
+  uint64 validTo = 7; // msec since unix epoch
 }
 
 message PreTrace {
   bytes identity = 1;
   bytes partialSecretKeyForIdentityOfLocation = 2;
   bytes cipherTextHealthAuthority = 3;
+  string message = 4;
+  bytes notificationKey = 5;
 }
 
 message TraceProof {
