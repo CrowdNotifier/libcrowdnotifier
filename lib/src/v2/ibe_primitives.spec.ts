@@ -1,5 +1,6 @@
 import {Log, waitReady} from '..';
 import {dec, enc, keyDer, keyGen} from './ibe_primitives';
+import {testGenId} from './helpers.spec';
 
 /**
  * Very simple crypto test for CrowdNotifierPrimitives using the new
@@ -47,6 +48,7 @@ async function main() {
   log.info('Start test suite for crypto.');
 
   testIbePrimitives();
+  testGenId();
 
   log.info('Crypto spec successfully finished!');
 }
