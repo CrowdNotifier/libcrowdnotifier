@@ -97,7 +97,7 @@ export class Location {
         location: string,
         room: string,
     ): Uint8Array {
-      return sodium.from_string([venueType, name, location, room].join(':'));
+      return sodium.from_string([venueType, name, location, room].join('::'));
     }
 
     static binary_to_info(bin: Uint8Array): string[] {
