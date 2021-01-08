@@ -4,7 +4,6 @@ import {
   crypto_secretbox_NONCEBYTES,
   crypto_secretbox_open_easy,
   randombytes_buf,
-  ready,
 } from 'libsodium-wrappers-sumo';
 import mcl from 'mcl-wasm';
 import {baseG2, xor} from './helpers';
@@ -20,15 +19,6 @@ import {baseG2, xor} from './helpers';
 // The security parameter l is 128 bits,
 // so the nonce length will be 2l == 256bits == 32 bytes.
 export const NONCE_LENGTH = 32;
-
-export async function waitReady() {
-  await new Promise((resolve) => {
-    mcl.init(mcl.BLS12_381).then(() => {
-      resolve(undefined);
-    });
-  });
-  await ready;
-}
 
 export interface IEncryptedData {
     c1: mcl.G2;

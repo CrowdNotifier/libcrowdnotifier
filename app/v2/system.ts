@@ -1,19 +1,31 @@
 import {
-  genCode, genPreTrace, genTrace, IEncryptedData, ILocationData,
-  QRCodeContent,
-  MasterTrace, match,
+  genTrace,
+  IEncryptedData, MasterTrace,
+  match,
   mcl,
-  PreTrace, TraceProof, PreTraceWithProof,
-  QRCodeEntry, QRCodeTrace, scan,
+  PreTraceWithProof, QRCodeContent,
+  QRCodeEntry, QRCodeTrace,
+  scan,
   setupHA,
   sodium,
-  Trace, verifyTrace,
+  Trace,
+  verifyTrace,
 } from '@c4dt/libcrowdnotifier';
+import {randomBytes} from 'crypto';
+import {Organizer, Room} from './managed';
 
 /**
  * The System package uses the crypto but only passes around
  * base64 encoded protobuf messages. This helps to
  * understand which fields need to be serialized / deserialized.
+ *
+ * Using one Location class is a special case of the more general
+ * "managed room creation". For this reason, Location calls out
+ * to the managed classes.
+ *
+ * But because the case described in the whitepaper is based on
+ * the description of a Location, this is the 'system' described
+ * here.
  */
 
 /**
@@ -30,7 +42,7 @@ export class HealthAuthority {
      */
     createTraceEntry(preTrace64: string, counts: string): string {
       const preTraceWithProof =
-          PreTraceWithProof.decode(sodium.from_base64(preTrace64));
+            PreTraceWithProof.decode(sodium.from_base64(preTrace64));
       const preTraceProto = preTraceWithProof.preTrace;
       const traceProofProto = preTraceWithProof.proof;
       const info = preTraceWithProof.info;
@@ -72,139 +84,88 @@ export class HealthAuthority {
     }
 }
 
-
 /**
  * Location is used by a location owner to create the two QRCodes.
  */
 export class Location {
-    public data: ILocationData;
+  public organizer: Organizer;
+  public room: Room;
 
-    constructor(
-        healthAuthorityPubKey: Uint8Array,
-        public venueType: number,
-        public name: string,
-        public location: string,
-        public room: string,
-    ) {
-      const infoBinary =
-          Location.info_to_binary(venueType, name, location, room);
-      this.data = genCode(healthAuthorityPubKey, infoBinary);
+  /**
+   * This creates a new location QRCode.
+   * @param authority
+   * @param venueType
+   * @param name
+   * @param location
+   * @param room
+   */
+  constructor(
+      authority: (Organizer | Uint8Array),
+      venueType: number,
+      name: string,
+      location: string,
+      room: string,
+  ) {
+    if (authority instanceof Organizer) {
+      this.organizer = authority;
+    } else {
+      this.organizer = Organizer.fromPassPhrase(authority,
+          sodium.to_base64(randomBytes(32)));
     }
+    this.room = Room.fromOrganizerPublic(this.organizer.data,
+        venueType, name, location, room);
+  }
 
-    static info_to_binary(
-        venueType: number,
-        name: string,
-        location: string,
-        room: string,
-    ): Uint8Array {
-      return sodium.from_string([venueType, name, location, room].join('::'));
-    }
-
-    static binary_to_info(bin: Uint8Array): string[] {
-      return sodium.to_string(bin).split('::');
-    }
-
-
-    /**
-     * preTrace is implemented as a static method,
-     * because we suppose that the location owner doesn't have the
-     * information necessary anywhere else than in the QRtrace code.
-     *
-     * TODO: add more than one count
-     * @param qrTrace the string from the qrTrace code
-     * @param counts currently only a string representing one count -
-     * hours since the unix epoch.
-     */
-    static preTrace(qrTrace: string, counts: string): string {
-      const qrTrace64 = qrTrace.replace(/^.*#/, '');
-      const masterTraceRecordProto =
-          QRCodeTrace.decode(sodium.from_base64(qrTrace64)).masterTraceRecord;
-
-      const masterPublicKey = new mcl.G2();
-      masterPublicKey.deserialize(masterTraceRecordProto.masterPublicKey);
-      const masterSecretKeyLocation = new mcl.Fr();
-      masterSecretKeyLocation
-          .deserialize(masterTraceRecordProto.masterSecretKeyLocation);
-
-      const masterTraceRecord = {
-        mpk: masterPublicKey,
-        mskl: masterSecretKeyLocation,
-        info: masterTraceRecordProto.info,
-        nonce1: masterTraceRecordProto.nonce1,
-        nonce2: masterTraceRecordProto.nonce2,
-        ctxtha: masterTraceRecordProto.cipherTextHealthAuthority,
-      };
-      const count = parseInt(counts);
-      const [preTrace, traceProof] = genPreTrace(masterTraceRecord, count);
-      const preTraceProto = PreTrace.create({
-        identity: preTrace.id,
-        cipherTextHealthAuthority: preTrace.ctxtha,
-        partialSecretKeyForIdentityOfLocation: preTrace.pskidl.serialize(),
-      });
-      const traceProofProto = TraceProof.create({
-        masterPublicKey: traceProof.mpk.serialize(),
-        nonce1: traceProof.nonce1,
-        nonce2: traceProof.nonce2,
-      });
-      const preTraceWithProof = PreTraceWithProof.create({
-        preTrace: preTraceProto,
-        proof: traceProofProto,
-        info: masterTraceRecordProto.info,
-      });
-      return sodium.to_base64(PreTraceWithProof
-          .encode(preTraceWithProof).finish());
-    }
+  /**
+   * preTrace is implemented as a static method,
+   * because we suppose that the location owner doesn't have the
+   * information necessary anywhere else than in the QRtrace code.
+   *
+   * TODO: add more than one count
+   * @param qrTrace the string from the qrTrace code
+   * @param counts currently only a string representing one count -
+   * hours since the unix epoch.
+   */
+  static preTrace(qrTrace: string, counts: string): string {
+    const count = parseInt(counts);
+    const room = Room.fromQRTrace(qrTrace);
+    return Organizer.fromQRTrace(qrTrace).preTrace(room, [count])[0];
+  }
 
 
-    /**
-     * Returns the base64 encoded protobuf-message for the location owner.
-     *
-     * @param baseURL - anything - is ignored and removed afterwards.
-     */
-    getQRtrace(baseURL: string): string {
-      const qrTrace = new QRCodeTrace({
-        version: 2,
-        masterTraceRecord: this.protoMTR(),
-      });
-      return `${baseURL}#`+
+  /**
+   * Returns the base64 encoded protobuf-message for the location owner.
+   *
+   * @param baseURL - anything - is ignored and removed afterwards.
+   */
+  getQRtrace(baseURL: string): string {
+    const mtr = this.room.getMasterTraceRecord(this.organizer);
+
+    const qrTrace = new QRCodeTrace({
+      version: 2,
+      masterTraceRecord: new MasterTrace({
+        masterPublicKey: mtr.mpk.serialize(),
+        masterSecretKeyLocation: mtr.mskl.serialize(),
+        info: mtr.info,
+        nonce1: mtr.nonce1,
+        nonce2: mtr.nonce2,
+        cipherTextHealthAuthority: mtr.ctxtha,
+      }),
+    });
+    return `${baseURL}#` +
           `${sodium.to_base64(QRCodeTrace.encode(qrTrace).finish())}`;
-    }
+  }
 
 
-    /**
-     * Returns the base64 encoded protobuf-message necessary for
-     * visitors to register.
-     *
-     * @param baseURL - anything - is ignored and removed afterwards.
-     */
-    getQRentry(baseURL: string): string {
-      const data = QRCodeContent.create({
-        name: this.name,
-        location: this.location,
-        room: this.room,
-        venueType: this.venueType,
-      });
-      const qrEntry = QRCodeEntry.create({
-        version: 2,
-        data,
-        masterPublicKey: this.data.ent.serialize(),
-        entryProof: this.data.pEnt,
-      });
-      return `${baseURL}#`+
-          `${sodium.to_base64(QRCodeEntry.encode(qrEntry).finish())}`;
-    }
-
-
-    private protoMTR(): MasterTrace {
-      return new MasterTrace({
-        masterPublicKey: this.data.mtr.mpk.serialize(),
-        masterSecretKeyLocation: this.data.mtr.mskl.serialize(),
-        info: this.data.mtr.info,
-        nonce1: this.data.mtr.nonce1,
-        nonce2: this.data.mtr.nonce2,
-        cipherTextHealthAuthority: this.data.mtr.ctxtha,
-      });
-    }
+  /**
+   * Returns the base64 encoded protobuf-message necessary for
+   * visitors to register.
+   *
+   * @param baseURL - anything - is ignored and removed afterwards.
+   */
+  getQRentry(baseURL: string): string {
+    return this.room.getQRentry(baseURL);
+  }
 }
 
 /**
@@ -231,13 +192,12 @@ export class Visit {
       const masterPublicKey = new mcl.G2();
       masterPublicKey.deserialize(qrEntry.masterPublicKey);
 
-      const info = Location.info_to_binary(qrEntry.data.venueType,
-          qrEntry.data.name, qrEntry.data.location, qrEntry.data.room);
+      const info = QRCodeContent.encode(qrEntry.data).finish();
       this.data = scan(masterPublicKey,
           qrEntry.entryProof,
           info,
           entryTime,
-          diary ? info : sodium.from_string('anonymous'));
+            diary ? info : sodium.from_string('anonymous'));
     }
 
     /**
@@ -258,7 +218,8 @@ export class Visit {
 
         const aux = match(this.data, tr);
         if (aux !== undefined) {
-          this.identity = sodium.to_string(aux);
+          const info = QRCodeContent.decode(aux);
+          this.identity = `${info.name} - ${info.location} - ${info.room}`;
           return true;
         }
       }

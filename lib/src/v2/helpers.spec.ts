@@ -3,7 +3,6 @@ import {genId} from './helpers';
 import {from_string} from 'libsodium-wrappers-sumo';
 
 const log = new Log('v2/helpers.spec');
-log.info(`Starting at: ${new Date()}`);
 
 interface testVector {
     nonce1Hex: string,
@@ -15,6 +14,8 @@ interface testVector {
 
 // One set of test vectors for the genId method.
 export function testGenId() {
+  log.info(`Starting at: ${new Date()}`);
+
   const testVectors: testVector[] = [
     {
       nonce1Hex:

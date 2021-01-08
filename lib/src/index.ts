@@ -1,11 +1,17 @@
 import * as v1 from './v1';
 import * as v1_1 from './v1_1';
 import {
+  EntryProof,
+  genOrgStatic,
+  genOrgCode,
   genCode,
   genPreTrace,
   genTrace,
   IEncryptedData,
   ILocationData,
+  IOrganizerData,
+  IOrganizerPublic,
+  IMasterTrace,
   QRCodeContent,
   MasterTrace,
   match,
@@ -33,14 +39,17 @@ export interface IKeyPair {
 
 export {
   // CrowdNotifierPrimitives
-  setupHA, genCode, scan, genPreTrace, genTrace, verifyTrace, match,
-  waitReady, IEncryptedData,
-  baseG1, baseG2, genId,
+  setupHA, genOrgStatic, genOrgCode, genCode, scan,
+  genPreTrace, genTrace, verifyTrace, match,
+  // Generic crypto primitives needed
+  waitReady, IEncryptedData, baseG1, baseG2, genId,
   // Proto structures needed
   PreTraceWithProof, Trace, PreTrace, TraceProof,
   QRCodeTrace, QRCodeEntry, QRCodeContent, MasterTrace,
+  EntryProof,
   // Structures
-  ILocationData,
+  ILocationData, IOrganizerData, IOrganizerPublic,
+  IMasterTrace,
   // old versions of the protocol
   v1, v1_1,
   // beloved log-library
