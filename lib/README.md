@@ -40,6 +40,53 @@ Then you can use it as shown in `../app/v2/system.ts`.
 All methods in libcrowdnotifier are as close as possible to the methods in the white paper.
 This allows easy verification of the scheme.
 
+## Caveats
+
+### Initializing mcl and libsodium
+
+Before being able to use the the library, you need to call `waitReady`:
+
+```
+import {waitReady} from '@c4dt/libcrowdnotifier'
+
+// Somewhere in the initialization code, do this:
+await waitReady();
+``` 
+
+### Using mcl or libsodium directly
+
+As the mcl-library is using wasm, care must be taken to use the same wasm-instance!
+For some reason the same applies to libsodium...
+So if you need direct access to the mcl or libsodium primitives, use the following:
+
+```
+import {mcl, sodium} from '@c4dt/libcrowdnotifier'
+```
+
+### Using webpack
+
+When using webpack and getting strange errors like
+
+```
+Uncaught ReferenceError: process is not defined
+```
+
+or
+
+```
+Uncaught (in promise) ReferenceError: Buffer is not defined
+```
+
+Then be sure to include something like this in your appropriate `webpack.js` file:
+
+```
+        plugins: [
+[...]
+            new webpack.DefinePlugin({
+[...]
+                'process.browser': true,
+```
+
 ## Documentation
 
 The documentation can be found on https://crowdnotifier.github.io/libcrowdnotifier

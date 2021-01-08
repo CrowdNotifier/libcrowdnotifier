@@ -1,9 +1,21 @@
 import mcl from 'mcl-wasm';
-import {crypto_hash_sha256, from_string} from 'libsodium-wrappers-sumo';
+import {crypto_hash_sha256, from_string, ready} from 'libsodium-wrappers-sumo';
 
 /**
  * New methods and definitions
  */
+
+/**
+ * Waits for the mcl and libsodium libraries to be ready.
+ */
+export async function waitReady() {
+  await new Promise((resolve) => {
+    mcl.init(mcl.BLS12_381).then(() => {
+      resolve(undefined);
+    });
+  });
+  await ready;
+}
 
 // from https://github.com/zcash/librustzcash/blob/6e0364cd42a2b3d2b958a54771ef51a8db79dd29/pairing/src/bls12_381/README.md#generators
 export function baseG1(): mcl.G1 {

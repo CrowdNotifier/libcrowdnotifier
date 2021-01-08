@@ -1,5 +1,14 @@
 import mcl from 'mcl-wasm';
 
+export interface IOrganizerData extends IOrganizerPublic {
+    mskO: mcl.Fr;
+}
+
+export interface IOrganizerPublic {
+    mpk: mcl.G2;
+    ctxtha: Uint8Array;
+}
+
 export interface IMasterTrace {
     mpk: mcl.G2;
     mskl: mcl.Fr;

@@ -78,11 +78,11 @@ export class QRCodeContent extends Message<QRCodeContent> {
     // @ts-ignore
     venueType: EVenueType;
     // @ts-ignore
-    notificationKey: Uint8Array;
+    notificationKey?: Uint8Array;
     // @ts-ignore
-    validFrom: number; // msec since unix epoch
+    validFrom?: number; // msec since unix epoch
     // @ts-ignore
-    validTo: number; // msec since unix epoch
+    validTo?: number; // msec since unix epoch
 
     getVenueTypeStr(): string {
       switch (this.venueType) {
@@ -112,7 +112,7 @@ export class QRCodeContent extends Message<QRCodeContent> {
     }
 
     getValidFrom(): Date {
-      return new Date(this.validFrom);
+      return new Date(this.validFrom || new Date().getTime());
     }
 
     setValidFrom(d: Date) {
@@ -120,7 +120,7 @@ export class QRCodeContent extends Message<QRCodeContent> {
     }
 
     getValidTo(): Date {
-      return new Date(this.validTo);
+      return new Date(this.validTo || new Date().getTime());
     }
 
     setValidTo(d: Date) {

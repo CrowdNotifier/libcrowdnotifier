@@ -1,21 +1,16 @@
-import {Log, waitReady} from '..';
+import {Log} from '..';
 import {dec, enc, keyDer, keyGen} from './ibe_primitives';
-import {testGenId} from './helpers.spec';
 
 /**
  * Very simple crypto test for CrowdNotifierPrimitives using the new
  * BNS scheme to avoid having to print new QRcodes after every infection.
- *
- * To run it, write:
- *   npm ci
- *   npm run testv2
  */
 
 const log = new Log('v2/ibe_primitives.spec');
-log.info(`Starting at: ${new Date()}`);
 
+export function testIbePrimitives() {
+  log.info(`Starting at: ${new Date()}`);
 
-function testIbePrimitives() {
   const id = new Uint8Array([1, 2, 3, 4]);
   const msg = new Uint8Array([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     1, 2, 3, 4]);
@@ -41,18 +36,3 @@ function testIbePrimitives() {
 
   log.info('All tests for IBE primitives passed!');
 }
-
-async function main() {
-  await waitReady();
-
-  log.info('Start test suite for crypto.');
-
-  testIbePrimitives();
-  testGenId();
-
-  log.info('Crypto spec successfully finished!');
-}
-
-main().catch((e) => {
-  log.panic(e);
-});

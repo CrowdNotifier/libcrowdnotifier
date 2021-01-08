@@ -3,14 +3,14 @@
   "repository": "https://github.com/CrowdNotifier/libcrowdnotifier",
   "license": "MPL-2.0",
   "author": "Linus Gasser <linus.gasser@epfl.ch>",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": false,
   "scripts": {
     "build": "npx tsc --build tsconfig.json",
     "doc": "typedoc --tsconfig tsconfig.json --out ../docs src/ types/",
     "lint": "npx eslint src/*/*ts src/*ts",
     "lint:fix": "npx eslint --fix src/*/*ts src/*ts",
-    "test": "npx ts-node src/v2/crowd_notifier_primitives.spec.ts && npx ts-node src/v2/ibe_primitives.spec.ts",
+    "test": "npx ts-node src/v2/main.spec.ts",
     "benchmarks": "npx ts-node src/v2/benchmarks.spec.ts"
   },
   "dependencies": {

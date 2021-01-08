@@ -1,8 +1,10 @@
-import {waitReady} from './ibe_primitives';
-import {genCode, genPreTrace, genTrace,
-  match, scan, setupHA, verifyTrace} from './crowd_notifier_primitives';
-import {Log} from '..';
-import {from_string} from 'libsodium-wrappers-sumo';
+import {
+  genCode, genOrgCode, genOrgStatic, genPreTrace, genTrace,
+  match, scan, setupHA, verifyTrace,
+} from './crowd_notifier_primitives';
+import {IKeyPair, Log} from '..';
+import {ILocationData} from './structs';
+import {from_string, randombytes_buf} from 'libsodium-wrappers-sumo';
 
 /**
  * Very simple crypto test for CrowdNotifierPrimitives using the new BNS scheme
@@ -14,17 +16,39 @@ import {from_string} from 'libsodium-wrappers-sumo';
  */
 
 const log = new Log('v2/crowd_notifier_primitives.spec');
-log.info(`Starting at: ${new Date()}`);
 
-
-function testCrowdNotifierPrimitives() {
-  log.info('Setting up backends');
-  const HealthAuthority = setupHA();
+export function testCrowdNotifierPrimitives() {
+  log.name = 'v2/crowd_notifier_primitives.spec';
+  log.info(`Starting at: ${new Date()}`);
+  const healthAuthority = setupHA();
   const infoLocation1 = from_string('FooBar:Lausanne:undefined');
-  const location1 = genCode(HealthAuthority.publicKey, infoLocation1);
+  const location1 = genCode(healthAuthority.publicKey, infoLocation1);
   const infoLocation2 = from_string('BarMitzva:Lausanne:undefined');
-  const location2 = genCode(HealthAuthority.publicKey, infoLocation1);
+  const location2 = genCode(healthAuthority.publicKey, infoLocation1);
+  simulateVisits(healthAuthority, location1, location2,
+      infoLocation1, infoLocation2);
+}
 
+/**
+ * Tests the v2.1 managed crowdNotifier protocol
+ */
+export function testCrowdNotifierPrimitivesOrganization() {
+  log.name = 'v2/crowd_notifier_primitives.spec::organizer';
+  log.info(`Starting at: ${new Date()}`);
+  const healthAuthority = setupHA();
+  const organizer = genOrgStatic(healthAuthority.publicKey,
+      Buffer.from(randombytes_buf(32)).toString('hex'));
+  const infoLocation1 = from_string('FooBar:Lausanne:undefined');
+  const location1 = genOrgCode(organizer, infoLocation1);
+  const infoLocation2 = from_string('BarMitzva:Lausanne:undefined');
+  const location2 = genOrgCode(organizer, infoLocation1);
+  simulateVisits(healthAuthority, location1, location2,
+      infoLocation1, infoLocation2);
+}
+
+function simulateVisits(healthAuthority: IKeyPair,
+    location1: ILocationData, location2: ILocationData,
+    infoLocation1: Uint8Array, infoLocation2: Uint8Array) {
   log.info('Creating two users');
   const counter1 = 1000;
   const user1Aux = from_string('secret date');
@@ -42,9 +66,9 @@ function testCrowdNotifierPrimitives() {
   const [preTrace1_3, tr_proof1_3] = genPreTrace(location1.mtr, counter1 + 1);
 
   log.info('Creating traces from health authority');
-  const trace1_1 = genTrace(HealthAuthority, preTrace1_1);
-  const trace1_2 = genTrace(HealthAuthority, preTrace1_2);
-  const trace1_3 = genTrace(HealthAuthority, preTrace1_3);
+  const trace1_1 = genTrace(healthAuthority, preTrace1_1);
+  const trace1_2 = genTrace(healthAuthority, preTrace1_2);
+  const trace1_3 = genTrace(healthAuthority, preTrace1_3);
   if (trace1_1 === undefined ||
       trace1_2 === undefined ||
       trace1_3 === undefined) {
@@ -87,19 +111,3 @@ function testCrowdNotifierPrimitives() {
   log.assert(match(user2, trace1_2), undefined, 'Shouldn\'t match user2');
   log.assert(match(user2, trace1_3), undefined, 'Shouldn\'t match user2');
 }
-
-
-async function main() {
-  await waitReady();
-
-  log.info('Start test suite for crowdnotifier protocol.');
-
-  testCrowdNotifierPrimitives();
-
-  log.info('Crowdnotifier spec successfully finished!');
-}
-
-
-main().catch((e) => {
-  log.panic(e);
-});
