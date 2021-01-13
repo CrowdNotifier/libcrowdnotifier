@@ -1,6 +1,6 @@
 import {
   genTrace,
-  IEncryptedData, MasterTrace,
+  IEncryptedData, IKeyPair, MasterTrace,
   match,
   mcl,
   PreTraceWithProof, QRCodeContent,
@@ -13,6 +13,7 @@ import {
 } from '@c4dt/libcrowdnotifier';
 import {randomBytes} from 'crypto';
 import {Organizer, Room} from './managed';
+import {EncryptedData} from './proto';
 
 /**
  * The System package uses the crypto but only passes around
@@ -33,55 +34,62 @@ import {Organizer, Room} from './managed';
  * libcrowdnotifier namespace.
  */
 export class HealthAuthority {
-    public keyPair = setupHA();
+  public keyPair: IKeyPair;
 
-    /**
+  constructor(kp?: IKeyPair) {
+    if (kp === undefined) {
+      kp = setupHA();
+    }
+    this.keyPair = kp;
+  };
+
+  /**
      * In case of an infection notification, the
      * @param preTrace64 representation of preTrace
      * @param counts sent by the health authority
      */
-    createTraceEntry(preTrace64: string, counts: string): string {
-      const preTraceWithProof =
+  createTraceEntry(preTrace64: string, counts: string): string {
+    const preTraceWithProof =
             PreTraceWithProof.decode(sodium.from_base64(preTrace64));
-      const preTraceProto = preTraceWithProof.preTrace;
-      const traceProofProto = preTraceWithProof.proof;
-      const info = preTraceWithProof.info;
+    const preTraceProto = preTraceWithProof.preTrace;
+    const traceProofProto = preTraceWithProof.proof;
+    const info = preTraceWithProof.info;
 
-      const partialSecretKeyForIdentityOfLocation = new mcl.G1();
-      partialSecretKeyForIdentityOfLocation
-          .deserialize(preTraceProto.partialSecretKeyForIdentityOfLocation);
-      const masterPublicKey = new mcl.G2();
-      masterPublicKey.deserialize(traceProofProto.masterPublicKey);
+    const partialSecretKeyForIdentityOfLocation = new mcl.G1();
+    partialSecretKeyForIdentityOfLocation
+        .deserialize(preTraceProto.partialSecretKeyForIdentityOfLocation);
+    const masterPublicKey = new mcl.G2();
+    masterPublicKey.deserialize(traceProofProto.masterPublicKey);
 
-      const preTrace = {
-        id: preTraceProto.identity,
-        ctxtha: preTraceProto.cipherTextHealthAuthority,
-        pskidl: partialSecretKeyForIdentityOfLocation,
-      };
-      const traceProof = {
-        mpk: masterPublicKey,
-        nonce1: traceProofProto.nonce1,
-        nonce2: traceProofProto.nonce2,
-      };
+    const preTrace = {
+      id: preTraceProto.identity,
+      ctxtha: preTraceProto.cipherTextHealthAuthority,
+      pskidl: partialSecretKeyForIdentityOfLocation,
+    };
+    const traceProof = {
+      mpk: masterPublicKey,
+      nonce1: traceProofProto.nonce1,
+      nonce2: traceProofProto.nonce2,
+    };
 
-      const count = parseInt(counts);
-      const trace = genTrace(this.keyPair, preTrace);
+    const count = parseInt(counts);
+    const trace = genTrace(this.keyPair, preTrace);
 
-      if (trace === undefined) {
-        throw new Error('couldn\'t create a trace.');
-      }
-      if (!verifyTrace(info, count, trace, traceProof)) {
-        throw new Error('Invalid trace.');
-      }
-
-      const traceProto = {
-        identity: trace.id,
-        secretKeyForIdentity: trace.skid.serialize(),
-      };
-
-      const traceSer = Trace.encode(Trace.create(traceProto)).finish();
-      return sodium.to_base64(traceSer);
+    if (trace === undefined) {
+      throw new Error('couldn\'t create a trace.');
     }
+    if (!verifyTrace(info, count, trace, traceProof)) {
+      throw new Error('Invalid trace.');
+    }
+
+    const traceProto = {
+      identity: trace.id,
+      secretKeyForIdentity: trace.skid.serialize(),
+    };
+
+    const traceSer = Trace.encode(Trace.create(traceProto)).finish();
+    return sodium.to_base64(traceSer);
+  }
 }
 
 /**
@@ -173,13 +181,21 @@ export class Location {
  */
 export class Visit {
     public identity = 'undefined';
-    private readonly data: IEncryptedData;
+    constructor(readonly data: IEncryptedData) {}
 
-    constructor(
+    static fromEncryptedData(ed: EncryptedData): Visit {
+      const {c2, c3, nonce} = ed;
+      return new Visit({
+        c1: ed.getC1(),
+        c2, c3, nonce,
+      });
+    }
+
+    static fromQRCode(
         qrCodeEntry: string,
         entryTime: number,
         diary?: boolean,
-    ) {
+    ): Visit {
       const qrBase64 = qrCodeEntry.replace(/^.*#/, '');
       const qrEntry = QRCodeEntry.decode(sodium.from_base64(qrBase64));
       if (qrEntry.version === undefined || qrEntry.version !== 2) {
@@ -193,11 +209,19 @@ export class Visit {
       masterPublicKey.deserialize(qrEntry.masterPublicKey);
 
       const info = QRCodeContent.encode(qrEntry.data).finish();
-      this.data = scan(masterPublicKey,
+      return new Visit(scan(masterPublicKey,
           qrEntry.entryProof,
           info,
           entryTime,
-            diary ? info : sodium.from_string('anonymous'));
+            diary ? info : sodium.from_string('anonymous')));
+    }
+
+    getEncryptedData(): EncryptedData {
+      const {c2, c3, nonce} = this.data;
+      return new EncryptedData({
+        c1: this.data.c1.serialize(),
+        c2, c3, nonce,
+      });
     }
 
     /**

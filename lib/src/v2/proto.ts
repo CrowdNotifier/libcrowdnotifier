@@ -165,6 +165,16 @@ export class Trace extends Message<Trace> {
     identity: Uint8Array;
     // @ts-ignore
     secretKeyForIdentity: Uint8Array;
+    // @ts-ignore
+    startTime?: number
+    // @ts-ignore
+    endTime?: number;
+    // @ts-ignore
+    createdAt?: number;
+    // @ts-ignore
+    message: Uint8Array;
+    // @ts-ignore
+    nonce: Uint8Array;
 }
 
 try {

@@ -192,6 +192,26 @@
             "secretKeyForIdentity": {
               "type": "bytes",
               "id": 2
+            },
+            "startTime": {
+              "type": "int64",
+              "id": 3
+            },
+            "endTime": {
+              "type": "int64",
+              "id": 4
+            },
+            "createdAt": {
+              "type": "int64",
+              "id": 5
+            },
+            "message": {
+              "type": "bytes",
+              "id": 6
+            },
+            "nonce": {
+              "type": "bytes",
+              "id": 7
             }
           }
         }

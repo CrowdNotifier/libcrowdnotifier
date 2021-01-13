@@ -75,4 +75,9 @@ message PreTraceWithProof {
 message Trace {
   bytes identity = 1;
   bytes secretKeyForIdentity = 2;
+  int64 startTime = 3;
+  int64 endTime = 4;
+  int64 createdAt = 5;
+  bytes message = 6;
+  bytes nonce = 7;
 }
