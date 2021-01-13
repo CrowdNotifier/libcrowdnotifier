@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package crowdnotifier_app_v2;
+
+message ProblematicEventWrapper {
+  int32 version = 1;
+  repeated ProblematicEvent events = 2;
+}
+
+message ProblematicEvent {
+  bytes identity = 1;
+  bytes secretKeyForIdentity = 2;
+  int64 startTime = 3;
+  int64 endTime = 4;
+  bytes message = 5;
+  bytes nonce = 6;
+}
+
+message EncryptedData {
+    bytes c1 = 1;
+    bytes c2 = 2;
+    bytes c3 = 3;
+    bytes nonce = 4;
+}

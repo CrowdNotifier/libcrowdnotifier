@@ -1,4 +1,9 @@
-publish:
+proto: v2/messages.json
+
+v2/messages.json: v2/messages.proto
+	npx pbjs -t json $< > $@
+
+publish: proto
 	rm -rf dist
 	npm run build
 	npm publish --dry-run

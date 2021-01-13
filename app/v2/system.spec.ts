@@ -74,9 +74,9 @@ async function checkVisits(healthAuthority: HealthAuthority,
     preTrace1_1: string, preTrace1_2: string, preTrace1_3: string) {
   log.info('Creating two visits');
   const visit1 =
-      new Visit(urlEntry1, counter1, true);
+      Visit.fromQRCode(urlEntry1, counter1, true);
   const visit2 =
-      new Visit(urlEntry2, counter2, true);
+      Visit.fromQRCode(urlEntry2, counter2, true);
 
   log.info('Location 1 got infected during three hours - creating traces');
   const trace1_1 =

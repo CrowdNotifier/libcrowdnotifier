@@ -40,7 +40,9 @@ export function genOrgStatic(pkh: Uint8Array, pp: string): IOrganizerData {
   mskO.setHashOf(from_string(pp));
   const mpkO = mcl.mul(baseG2(), mskO);
 
-  const [mpkha, mskha] = keyGen();
+  const mskha = new mcl.Fr();
+  mskha.setHashOf(from_string(`healthAuthority:${pp}`));
+  const mpkha = mcl.mul(baseG2(), mskha);
   const mpk = mcl.add(mpkO, mpkha);
 
   const ctxtha = crypto_box_seal(mskha.serialize(), pkh);
