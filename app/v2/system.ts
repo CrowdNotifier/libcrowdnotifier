@@ -13,7 +13,6 @@ import {
 } from '@c4dt/libcrowdnotifier';
 import {randomBytes} from 'crypto';
 import {Organizer, Room} from './managed';
-import {EncryptedData} from './proto';
 
 /**
  * The System package uses the crypto but only passes around
@@ -183,14 +182,6 @@ export class Visit {
     public identity = 'undefined';
     constructor(readonly data: IEncryptedData) {}
 
-    static fromEncryptedData(ed: EncryptedData): Visit {
-      const {c2, c3, nonce} = ed;
-      return new Visit({
-        c1: ed.getC1(),
-        c2, c3, nonce,
-      });
-    }
-
     static fromQRCode(
         qrCodeEntry: string,
         entryTime: number,
@@ -214,14 +205,6 @@ export class Visit {
           info,
           entryTime,
             diary ? info : sodium.from_string('anonymous')));
-    }
-
-    getEncryptedData(): EncryptedData {
-      const {c2, c3, nonce} = this.data;
-      return new EncryptedData({
-        c1: this.data.c1.serialize(),
-        c2, c3, nonce,
-      });
     }
 
     /**
