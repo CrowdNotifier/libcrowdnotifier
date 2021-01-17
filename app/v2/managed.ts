@@ -77,16 +77,22 @@ export class Organizer {
    * base64-encoded message to be sent to the backend.
    * @param room
    * @param counts
+   * @param message - if given, will be added to the pretraces
    */
-  preTrace(room: Room, counts: number[]): string[] {
+  preTrace(room: Room, counts: number[], message?: string): string[] {
     const masterTraceRecord = room.getMasterTraceRecord(this);
+    const notificationKey = room.entry.data.notificationKey;
     return counts.map((count) => {
       const [preTrace, traceProof] = genPreTrace(masterTraceRecord, count);
-      const preTraceProto = PreTrace.create({
+      const preTraceProto = new PreTrace({
         identity: preTrace.id,
         cipherTextHealthAuthority: preTrace.ctxtha,
         partialSecretKeyForIdentityOfLocation: preTrace.pskidl.serialize(),
       });
+      if (message !== undefined && notificationKey !== undefined) {
+        preTraceProto.message = message;
+        preTraceProto.notificationKey = notificationKey;
+      }
       const traceProofProto = TraceProof.create({
         masterPublicKey: traceProof.mpk.serialize(),
         nonce1: traceProof.nonce1,

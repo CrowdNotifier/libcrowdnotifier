@@ -1,6 +1,5 @@
 build:
 	make -C lib proto
-	make -C app proto
 	cd lib && npm run build
 	cd app && npm run build
 
