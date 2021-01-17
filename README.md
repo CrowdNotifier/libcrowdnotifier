@@ -103,6 +103,11 @@ If you're using your own libsodium and mcl imports, node will treat them as a se
 
 # Versions
 
+- 1.0.9 - 21/01/17 - Correctly set notificationKey and message and remove unused protobufs
+- 1.0.8 - 21/01/13 - Build fixes, better creation of app-classes: Organizer, HealthAuthority
+- 1.0.7 - 21/01/11 - Add Organizer method to use managed mode
+- 1.0.5 - 21/01/08 - Adding test-vectors, better field names in protobufs
+- 1.0.3 - 21/01/05 - Update the types
 - 1.0.0 - 20/12/17 - First version 
 
 # Contributing
