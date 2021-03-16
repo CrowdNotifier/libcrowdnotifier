@@ -1,6 +1,5 @@
 import {Log, waitReady} from '@c4dt/libcrowdnotifier';
 import {HealthAuthority, Location, Visit} from './system';
-import {Organizer, Room} from './managed';
 
 const log = new Log('v2/system.spec');
 log.info(`Starting at: ${new Date()}`);
@@ -14,7 +13,6 @@ async function main() {
   await waitReady();
 
   await testSingle();
-  await testManaged();
 }
 
 async function testSingle() {
@@ -41,35 +39,7 @@ async function testSingle() {
       preTrace1_1, preTrace1_2, preTrace1_3);
 }
 
-async function testManaged() {
-  log.info('Setting up backends in managed mode');
-  const healthAuthority = new HealthAuthority();
-  try {
-    Organizer.fromPassPhrase(healthAuthority.keyPair.publicKey,
-        'something something');
-    log.panic(Error('Short passphrases should be rejected'));
-  } catch (e) {
-    log.info('Correctly rejected short passphrase');
-  }
-
-  const organizer = Organizer.fromPassPhrase(
-      healthAuthority.keyPair.publicKey,
-      'something something something something something');
-
-  const room1 = Room.fromOrganizerPublic(organizer.data,
-      1, 'FooBar', 'Lausanne', 'any');
-  const room2 = Room.fromOrganizerPublic(organizer.data,
-      2, 'BarMitzva', 'Lausanne', 'unknown');
-
-  const preTrace1 = organizer.preTrace(room1,
-      [counter1-1, counter1, counter1+1]);
-
-  await checkVisits(healthAuthority,
-      room1.getQRentry(urlEntry), room2.getQRentry(urlEntry),
-      preTrace1[0], preTrace1[1], preTrace1[2]);
-}
-
-async function checkVisits(healthAuthority: HealthAuthority,
+export async function checkVisits(healthAuthority: HealthAuthority,
     urlEntry1: string, urlEntry2: string,
     preTrace1_1: string, preTrace1_2: string, preTrace1_3: string) {
   log.info('Creating two visits');

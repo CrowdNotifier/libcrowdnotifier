@@ -1,6 +1,3 @@
-import {HealthAuthority, Location, Visit} from './system';
-import {Organizer, Room} from './managed';
+import {HealthAuthority, Location, Visit, Room} from './system';
 
-export {HealthAuthority, Location, Visit,
-  Organizer, Room,
-};
+export {HealthAuthority, Location, Visit, Room};

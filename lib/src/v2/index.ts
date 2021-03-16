@@ -1,4 +1,4 @@
-import {setupHA, genOrgStatic, genOrgCode, genCode, scan, genPreTrace,
+import {setupHA, genCode, scan, genPreTrace,
   genTrace, verifyTrace, match} from './crowd_notifier_primitives';
 import {IEncryptedData} from './ibe_primitives';
 import {ILocationData, IOrganizerData, IOrganizerPublic,
@@ -9,7 +9,7 @@ import {waitReady, baseG1, baseG2, genId} from './helpers';
 
 export {
   // CrowdNotifierPrimitives
-  setupHA, genOrgStatic, genOrgCode, genCode, scan,
+  setupHA, genCode, scan,
   genPreTrace, genTrace, verifyTrace, match,
   // Generic crypto primitives needed
   waitReady, IEncryptedData, baseG1, baseG2, genId,
