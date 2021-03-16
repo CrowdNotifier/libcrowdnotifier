@@ -1,19 +1,17 @@
 import {Log} from '../log';
-import {waitReady} from '.';
-import {testIbePrimitives} from './ibe_primitives.spec';
-import {testGenId} from './helpers.spec';
+import {waitReady} from '..';
 import {
-  testCrowdNotifierPrimitives,
+  testCrowdNotifierPrimitivesOrganization,
+  testCrowdNotifierPrimitivesOrganizationDeprecated,
 } from './crowd_notifier_primitives.spec';
 
-const log = new Log('v2/main.spec');
+const log = new Log('v2_1/main.spec');
 log.info(`Starting at: ${new Date()}`);
 
 export async function main() {
   await waitReady();
-  testIbePrimitives();
-  testGenId();
-  testCrowdNotifierPrimitives();
+  testCrowdNotifierPrimitivesOrganization();
+  testCrowdNotifierPrimitivesOrganizationDeprecated();
   log.info('All tests completed successfully');
 }
 

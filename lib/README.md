@@ -12,6 +12,8 @@ The versions are:
 - v1_1 - like v1, but with some cryptographic cleanups: no signature anymore, thus only use of `curve25519`
 - v2 - using identity based encryption with a pairing based crypto system. This removes the need to re-create the
  information of the locations after every notification
+- v2_1 - fix for v2 where the organizer can drop the random private key for the health organizer to add
+ coercion resistance against an attacker
  
 The app available under https://notify-me.ch as of December 15th 2020 uses v1 of the protocol.
 Work is under way to update the app to version v2, and we hope that it will be available early January 2021.

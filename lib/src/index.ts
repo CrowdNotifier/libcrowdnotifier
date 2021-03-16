@@ -2,8 +2,6 @@ import * as v1 from './v1';
 import * as v1_1 from './v1_1';
 import {
   EntryProof,
-  genOrgStatic,
-  genOrgCode,
   genCode,
   genPreTrace,
   genTrace,
@@ -27,6 +25,12 @@ import {
   verifyTrace,
   waitReady,
 } from './v2';
+import {
+  genOrgStatic,
+  genOrgCode,
+  genOrgInit,
+  genOrgFollow,
+} from './v2_1';
 import {Log} from './log';
 import mcl from 'mcl-wasm';
 import sodium from 'libsodium-wrappers-sumo';
@@ -39,8 +43,10 @@ export interface IKeyPair {
 
 export {
   // CrowdNotifierPrimitives
-  setupHA, genOrgStatic, genOrgCode, genCode, scan,
+  setupHA, genCode, scan,
   genPreTrace, genTrace, verifyTrace, match,
+  // Managed CrowdNotifier (v2.1)
+  genOrgStatic, genOrgCode, genOrgFollow, genOrgInit,
   // Generic crypto primitives needed
   waitReady, IEncryptedData, baseG1, baseG2, genId,
   // Proto structures needed

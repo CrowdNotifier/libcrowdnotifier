@@ -1,10 +1,10 @@
 import {
-  genCode, genOrgCode, genOrgStatic, genPreTrace, genTrace,
+  genCode, genPreTrace, genTrace,
   match, scan, setupHA, verifyTrace,
 } from './crowd_notifier_primitives';
 import {IKeyPair, Log} from '..';
 import {ILocationData} from './structs';
-import {from_string, randombytes_buf} from 'libsodium-wrappers-sumo';
+import {from_string} from 'libsodium-wrappers-sumo';
 
 /**
  * Very simple crypto test for CrowdNotifierPrimitives using the new BNS scheme
@@ -29,24 +29,7 @@ export function testCrowdNotifierPrimitives() {
       infoLocation1, infoLocation2);
 }
 
-/**
- * Tests the v2.1 managed crowdNotifier protocol
- */
-export function testCrowdNotifierPrimitivesOrganization() {
-  log.name = 'v2/crowd_notifier_primitives.spec::organizer';
-  log.info(`Starting at: ${new Date()}`);
-  const healthAuthority = setupHA();
-  const organizer = genOrgStatic(healthAuthority.publicKey,
-      Buffer.from(randombytes_buf(32)).toString('hex'));
-  const infoLocation1 = from_string('FooBar:Lausanne:undefined');
-  const location1 = genOrgCode(organizer, infoLocation1);
-  const infoLocation2 = from_string('BarMitzva:Lausanne:undefined');
-  const location2 = genOrgCode(organizer, infoLocation1);
-  simulateVisits(healthAuthority, location1, location2,
-      infoLocation1, infoLocation2);
-}
-
-function simulateVisits(healthAuthority: IKeyPair,
+export function simulateVisits(healthAuthority: IKeyPair,
     location1: ILocationData, location2: ILocationData,
     infoLocation1: Uint8Array, infoLocation2: Uint8Array) {
   log.info('Creating two users');
