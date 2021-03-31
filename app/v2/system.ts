@@ -182,10 +182,19 @@ export class Visit {
     public identity = 'undefined';
     constructor(readonly data: IEncryptedData) {}
 
+    /**
+   * Creates a visit from a scanned QRcode
+   * @param qrCodeEntry
+   * @param entryTime
+   * @param diary
+   * @param now? in msec since the Unix Epoch - if given, checks the validity
+   * of the QRcode with regard to that time
+   */
     static fromQRCode(
         qrCodeEntry: string,
         entryTime: number,
         diary?: boolean,
+        now?: number,
     ): Visit {
       const qrBase64 = qrCodeEntry.replace(/^.*#/, '');
       const qrEntry = QRCodeEntry.decode(sodium.from_base64(qrBase64));
@@ -194,6 +203,13 @@ export class Visit {
       }
       if (qrEntry.data === undefined) {
         throw new Error('Invalid QR code entry.');
+      }
+      if (now === undefined) {
+        now = Date.now();
+      }
+      if (now < qrEntry.data.getValidFrom().getTime() ||
+          now > qrEntry.data.getValidTo().getTime() ) {
+        throw new Error('QR code out of validity interval');
       }
 
       const masterPublicKey = new mcl.G2();
