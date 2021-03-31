@@ -146,6 +146,8 @@ export class Room {
    * @param name
    * @param location
    * @param room
+   * @param now? If given, checks the validity of the QRcode
+   * with regard to that date
    */
   static fromOrganizerPublic(
       org: IOrganizerPublic,
@@ -153,6 +155,7 @@ export class Room {
       name: string,
       location: string,
       room: string,
+      now?: Date,
   ): Room {
     const entry = new QRCodeEntry({
       version: 2,
@@ -166,10 +169,12 @@ export class Room {
         nonce2: randomBytes(32),
       }),
     });
-    const now = new Date();
+    if (now === undefined) {
+      now = new Date();
+    }
     entry.data.setValidFrom(now);
     now.setFullYear(now.getFullYear() + 1);
-    entry.data.setValidFrom(now);
+    entry.data.setValidTo(now);
     return new Room(entry);
   }
 
