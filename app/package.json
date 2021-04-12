@@ -14,7 +14,7 @@
     "testv1": "npx ts-node v1/system.spec.ts",
     "testv1_1": "npx ts-node v1_1/system.spec.ts",
     "testv2": "npx ts-node v2/system.spec.ts",
-    "testv2_1": "npx ts-node v2_1/system.spec.ts"
+    "testv2_1": "npx ts-node v2_1/managed.spec.ts"
   },
   "dependencies": {
     "@c4dt/libcrowdnotifier": "^1.0.9",
