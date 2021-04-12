@@ -12,7 +12,7 @@ import {
   verifyTrace,
 } from '@c4dt/libcrowdnotifier';
 import {randomBytes} from 'crypto';
-import {Organizer, Room} from '../v2_1';
+import {Organizer, Room} from './managed';
 
 /**
  * The System package uses the crypto but only passes around

@@ -1,3 +1,3 @@
-import {Organizer, Room} from './managed';
+import {Organizer} from './managed';
 
-export {Organizer, Room};
+export {Organizer};

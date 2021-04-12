@@ -1,14 +1,15 @@
 import {
+  EntryProof,
   genOrgStatic,
   genPreTrace,
-  IOrganizerData,
+  IOrganizerData, IOrganizerPublic, IMasterTrace,
   mcl,
-  PreTrace, PreTraceWithProof,
+  PreTrace, PreTraceWithProof, QRCodeContent, QRCodeEntry,
   QRCodeTrace,
   sodium,
   TraceProof,
 } from '@c4dt/libcrowdnotifier';
-import {Room} from '../v2';
+import {randomBytes} from 'crypto';
 
 /**
  * In the managed setting, one organizer is responsible for more
@@ -105,5 +106,108 @@ export class Organizer {
     }).map((ptwp) =>
       sodium.to_base64(PreTraceWithProof.encode(ptwp).finish(),
       ));
+  }
+}
+
+/**
+ * The room is now only one place where an organizer is
+ * responsible.
+ */
+export class Room {
+  constructor(public entry: QRCodeEntry) {
+  }
+
+  /**
+   * Create a new room from an existing QRTrace code.
+   * @param qrTrace
+   * @return the room stored in the QRTrace
+   */
+  static fromQRTrace(qrTrace: string): Room {
+    const qrTrace64 = qrTrace.replace(/^.*#/, '');
+    const masterTraceRecordProto =
+            QRCodeTrace.decode(sodium.from_base64(qrTrace64)).masterTraceRecord;
+    const content = QRCodeContent.decode(masterTraceRecordProto.info);
+    const entry = new QRCodeEntry({
+      version: 2,
+      data: content,
+      masterPublicKey: masterTraceRecordProto.masterPublicKey,
+      entryProof: new EntryProof({
+        nonce1: masterTraceRecordProto.nonce1,
+        nonce2: masterTraceRecordProto.nonce2,
+      }),
+    });
+    return new Room(entry);
+  }
+
+  /**
+   * Creates a room given the public information of an organizer.
+   * @param org
+   * @param venueType
+   * @param name
+   * @param location
+   * @param room
+   * @param now? If given, checks the validity of the QRcode
+   * with regard to that date
+   */
+  static fromOrganizerPublic(
+      org: IOrganizerPublic,
+      venueType: number,
+      name: string,
+      location: string,
+      room: string,
+      now?: Date,
+  ): Room {
+    const entry = new QRCodeEntry({
+      version: 2,
+      data: new QRCodeContent({
+        venueType, name, location, room,
+        notificationKey: sodium.crypto_secretbox_keygen(),
+      }),
+      masterPublicKey: org.mpk.serialize(),
+      entryProof: new EntryProof({
+        nonce1: randomBytes(32),
+        nonce2: randomBytes(32),
+      }),
+    });
+    if (now === undefined) {
+      now = new Date();
+    }
+    entry.data.setValidFrom(now);
+    now.setFullYear(now.getFullYear() + 1);
+    entry.data.setValidTo(now);
+    return new Room(entry);
+  }
+
+  /**
+   * Returns the QREntry for this room.
+   * @param baseURL
+   */
+  getQRentry(baseURL: string): string {
+    const qrcode = QRCodeEntry.encode(this.entry).finish();
+    return `${baseURL}#` +
+            `${sodium.to_base64(qrcode)}`;
+  }
+
+  /**
+   * Returns the information about this room in binary format.
+   */
+  infoBinary(): Uint8Array {
+    return QRCodeContent.encode(this.entry.data).finish();
+  }
+
+
+  /**
+   * Returns the MasterTraceRecord for this room, given an organizer.
+   * @param organizer
+   */
+  getMasterTraceRecord(organizer: Organizer): IMasterTrace {
+    return {
+      mpk: organizer.data.mpk,
+      mskl: organizer.data.mskO,
+      info: this.infoBinary(),
+      nonce1: this.entry.entryProof.nonce1,
+      nonce2: this.entry.entryProof.nonce2,
+      ctxtha: organizer.data.ctxtha,
+    };
   }
 }
