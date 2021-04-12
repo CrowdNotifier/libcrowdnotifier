@@ -103,6 +103,7 @@ If you're using your own libsodium and mcl imports, node will treat them as a se
 
 # Versions
 
+- 1.2.0 - 21/03/12 - Start of the library-version v3
 - 1.1.0 - 21/03/12 - Allow the manager to drop the secret of the partial HA key
 - 1.0.9 - 21/01/17 - Correctly set notificationKey and message and remove unused protobufs
 - 1.0.8 - 21/01/13 - Build fixes, better creation of app-classes: Organizer, HealthAuthority
