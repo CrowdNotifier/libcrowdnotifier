@@ -3,6 +3,7 @@ import * as v1_1 from './v1_1';
 import {
   EntryProof,
   genCode,
+  genOrgStatic,
   genPreTrace,
   genTrace,
   IEncryptedData,
@@ -42,7 +43,7 @@ export interface IKeyPair {
 
 export {
   // CrowdNotifierPrimitives
-  setupHA, genCode, scan,
+  setupHA, genCode, scan, genOrgStatic,
   genPreTrace, genTrace, verifyTrace, match,
   // Managed CrowdNotifier (v2.1)
   genOrgCode, recoverOrgMasterSecret, genOrgInit,
