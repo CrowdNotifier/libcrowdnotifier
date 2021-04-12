@@ -2,7 +2,7 @@ import {
   compare,
   crypto_box_keypair,
   crypto_box_seal,
-  crypto_box_seal_open,
+  crypto_box_seal_open, from_string,
   IKeyPair,
   randombytes_buf,
 } from 'libsodium-wrappers-sumo';
@@ -10,10 +10,10 @@ import {dec, enc, IEncryptedData,
   keyDer, keyGen, NONCE_LENGTH} from './ibe_primitives';
 import mcl from 'mcl-wasm';
 import {
-  IEntryProof, ILocationData, IMasterTrace,
+  IEntryProof, ILocationData, IMasterTrace, IOrganizerData,
   IPreTrace, ITrace, ITraceProof,
 } from './structs';
-import {genId} from './helpers';
+import {baseG2, genId} from './helpers';
 
 
 /**
@@ -26,6 +26,29 @@ import {genId} from './helpers';
  */
 export function setupHA(): IKeyPair {
   return crypto_box_keypair();
+}
+
+/**
+ * Generates the static part for v2.1 from a pass phrase. The idea is to
+ * have a static part that doesn't change, to secure the notifications without
+ * having to keep too many keys.
+ * @param pkh public key of the health authority
+ * @param pp pass phrase, if possible 256 bits entropy or more
+ * @deprecated - please use v2_1/genOrgInit and v2_1/recoverOrgMasterSecret
+ */
+export function genOrgStatic(pkh: Uint8Array, pp: string): IOrganizerData {
+  const mskO = new mcl.Fr();
+  mskO.setHashOf(from_string(pp));
+  const mpkO = mcl.mul(baseG2(), mskO);
+
+  const mskha = new mcl.Fr();
+  mskha.setHashOf(from_string(`healthAuthority:${pp}`));
+  const mpkha = mcl.mul(baseG2(), mskha);
+  const mpk = mcl.add(mpkO, mpkha);
+
+  const ctxtha = crypto_box_seal(mskha.serialize(), pkh);
+
+  return {mpk, mskO, ctxtha};
 }
 
 /**
