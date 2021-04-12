@@ -8,32 +8,8 @@ import {ILocationData, IOrganizerData} from '../v2/structs';
 import {baseG2} from '../v2/helpers';
 
 /**
- * Generates the static part for v2.1 from a pass phrase. The idea is to
- * have a static part that doesn't change, to secure the notifications without
- * having to keep too many keys.
- * @param pkh public key of the health authority
- * @param pp pass phrase, if possible 256 bits entropy or more
- * @deprecated since v2.1 - please use genOrgInit and genOrgFollow
- */
-export function genOrgStatic(pkh: Uint8Array, pp: string): IOrganizerData {
-  console.warn('This method is deprecated, as it doesn\'t protect ' +
-      'against a coercion attack.');
-  const mskO = new mcl.Fr();
-  mskO.setHashOf(from_string(pp));
-  const mpkO = mcl.mul(baseG2(), mskO);
-
-  const mskha = new mcl.Fr();
-  mskha.setHashOf(from_string(`healthAuthority:${pp}`));
-  const mpkha = mcl.mul(baseG2(), mskha);
-  const mpk = mcl.add(mpkO, mpkha);
-
-  const ctxtha = crypto_box_seal(mskha.serialize(), pkh);
-
-  return {mpk, mskO, ctxtha};
-}
-
-/**
- * Generates the code for v2.1 with an organization master key.
+ * Generate the QR code for a room for v2.1 based on an organization's master
+ * key.
  * @param org from the genOrgStatic
  * @param info about the room
  * @return the QRCodeContent to be printed in QR codes
@@ -59,10 +35,10 @@ export function genOrgCode(org: IOrganizerData, info: Uint8Array):
  * have a static part that doesn't change, to secure the notifications without
  * having to keep too many keys.
  * When calling this function, the client will have to store the `ctxtha` and
- * `mpk` for later use, as ctxtha based on a randomly generated key.
+ * `mpk` for later use, as ctxtha is based on a randomly generated key.
  * This protects the client against a coercion attack, where an attacker tries
- * to coerce the client into sending a notification without the health
- * authorities approval.
+ * to coerce the client into sending a notification without the approval of
+ * the health authority.
  * @param pkh public key of the health authority
  * @param pp pass phrase, if possible 256 bits entropy or more
  */
@@ -80,15 +56,14 @@ export function genOrgInit(pkh: Uint8Array, pp: string): IOrganizerData {
 }
 
 /**
- * Generates the static part for v2.1 from a pass phrase. The idea is to
- * have a static part that doesn't change, to secure the notifications without
- * having to keep too many keys.
+ * Recovers the master secret of the organizer in management mode,
+ * given the passphrase.
  * This method is called by the client if it already has set up the ctxtha
  * and the mpk keys.
  * @param pkh public key of the health authority
  * @param pp pass phrase, if possible 256 bits entropy or more
  */
-export function genOrgFollow(pkh: Uint8Array, pp: string): mcl.Fr {
+export function recoverOrgMasterSecret(pkh: Uint8Array, pp: string): mcl.Fr {
   const mskO = new mcl.Fr();
   mskO.setHashOf(from_string(pp));
   return mskO;

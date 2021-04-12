@@ -1,11 +1,9 @@
 import {genOrgCode,
-  genOrgFollow,
-  genOrgInit,
-  genOrgStatic} from './crowd_notifier_primitives';
+  recoverOrgMasterSecret,
+  genOrgInit} from './crowd_notifier_primitives';
 
 export {
-  genOrgStatic,
   genOrgCode,
-  genOrgFollow,
+  recoverOrgMasterSecret,
   genOrgInit,
 };

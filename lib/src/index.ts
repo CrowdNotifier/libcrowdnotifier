@@ -26,10 +26,9 @@ import {
   waitReady,
 } from './v2';
 import {
-  genOrgStatic,
   genOrgCode,
   genOrgInit,
-  genOrgFollow,
+  recoverOrgMasterSecret,
 } from './v2_1';
 import {Log} from './log';
 import mcl from 'mcl-wasm';
@@ -46,7 +45,7 @@ export {
   setupHA, genCode, scan,
   genPreTrace, genTrace, verifyTrace, match,
   // Managed CrowdNotifier (v2.1)
-  genOrgStatic, genOrgCode, genOrgFollow, genOrgInit,
+  genOrgCode, recoverOrgMasterSecret, genOrgInit,
   // Generic crypto primitives needed
   waitReady, IEncryptedData, baseG1, baseG2, genId,
   // Proto structures needed

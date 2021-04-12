@@ -10,9 +10,11 @@ As there were several versions of the white paper, this library allows the use o
 The versions are:
 - v1 - first version where the information of the location needed to be updated after every notification
 - v1_1 - like v1, but with some cryptographic cleanups: no signature anymore, thus only use of `curve25519`
-- v2 - using identity based encryption with a pairing based crypto system. This removes the need to re-create the
- information of the locations after every notification
-- v2_1 - fix for v2 where the organizer can drop the random private key for the health organizer to add
+- v2 
+  - using identity based encryption with a pairing based crypto system. This removes the need to re-create the
+   information of the locations after every notification
+  - adds the primitives for a managed version where an organizer can manage many rooms at the same time
+- v2_1 - fix for managed mode of v2: now the organizer can drop the random private key for the health organizer to add
  coercion resistance against an attacker
  
 The app available under https://notify-me.ch as of December 15th 2020 uses v1 of the protocol.
