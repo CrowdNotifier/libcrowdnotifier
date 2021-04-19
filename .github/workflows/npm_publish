@@ -3,8 +3,9 @@
 name: Publish npm Package
 
 on:
-  release:
-    types: [created]
+  create:
+    tags:
+      - v*
 
 jobs:
   build:
