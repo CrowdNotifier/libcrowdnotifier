@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package crowdnotifier_v3;
+
+message QRCodeTrace {
+  uint32 version = 1;
+  bytes qrCodePayload = 2;
+  bytes masterSecretKeyLocation = 3;
+  bytes cipherTextHealthAuthority = 4;
+}
+
+message PreTrace {
+  bytes identity = 1;
+  bytes partialSecretKeyForIdentityOfLocation = 2;
+  bytes cipherTextHealthAuthority = 3;
+  bytes notificationKey = 5;
+}
+
+message TraceProof {
+  bytes masterPublicKey = 1;
+  bytes nonce1 = 2;
+  bytes nonce2 = 3;
+}
+
+message PreTraceWithProof {
+  PreTrace preTrace = 1;
+  TraceProof proof = 2;
+  bytes qrCodePayload = 3;
+  int64 startTime = 4;
+  int64 endTime = 5;
+  int64 startOfInterval = 6;
+}
+
+message Trace {
+  bytes identity = 1;
+  bytes secretKeyForIdentity = 2;
+  int64 startTime = 3;
+  int64 endTime = 4;
+  bytes nonce = 5;
+  bytes encryptedAssociatedData = 6;
+}
+
+message QRCodePayload {
+  uint32 version = 1;
+  TraceLocation locationData = 2;
+  CrowdNotifierData crowdNotifierData = 3;
+
+  bytes countryData = 4;
+}
+
+message TraceLocation {
+  uint32 version = 1;
+
+  // max. 100 characters
+  string description = 2;
+
+  // max. 100 characters
+  string address = 3;
+
+  // UNIX timestamp (in seconds)
+  uint64 startTimestamp = 4;
+
+  // UNIX timestamp (in seconds)
+  uint64 endTimestamp = 5;
+}
+
+message CrowdNotifierData {
+  uint32 version = 1;
+  bytes publicKey = 2;
+  bytes cryptographicSeed = 3;
+
+  // Ignore ;)
+  uint32 type = 4; // exact semantic tbd
+}
+
+
+message NotifyMeLocationData {
+  uint32 version = 1;
+  VenueType type = 2;
+  string room = 3;
+}
+
+enum VenueType {
+  OTHER = 0;
+  MEETING_ROOM = 1;
+  CAFETERIA = 2;
+  PRIVATE_EVENT = 3;
+  CANTEEN = 4;
+  LIBRARY = 5;
+  LECTURE_ROOM = 6;
+  SHOP = 7;
+  GYM = 8;
+  KITCHEN_AREA = 9;
+  OFFICE_SPACE = 10;
+}
+
+message AssociatedData {
+  int32 version = 1;
+  string message = 2;
+  bytes countryData = 3;
+}
