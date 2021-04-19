@@ -3,23 +3,32 @@
 name: Publish npm Package
 
 on:
-  create:
-    tags:
-      - 'v*'
+  release:
+    types: [created]
 
 jobs:
-  build:
+  build-lib:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: 12
-      - run: npm ci
-      - run: npm test
+      - run: cd lib && npm ci
+      - run: cd lib && npm test
+  
+  build-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - run: cd lib && npm ci
+      - run: cd lib && npm test
 
-  publish-npm:
-    needs: build
+  publish-npm-lib:
+    needs: build-lib
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -27,7 +36,21 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm publish
+      - run: cd lib && npm ci
+      - run: cd lib && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+
+  publish-npm-app:
+    needs: build-app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+          registry-url: https://registry.npmjs.org/
+      - run: cd app && npm ci
+      - run: cd app && npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
