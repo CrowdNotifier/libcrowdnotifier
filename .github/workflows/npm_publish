@@ -53,4 +53,4 @@ jobs:
       - run: cd app && npm ci
       - run: cd app && npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{SECRETS.NPM_TOKEN}}
