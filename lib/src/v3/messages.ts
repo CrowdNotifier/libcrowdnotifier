@@ -126,7 +126,7 @@ export class QRCodeTrace extends Message<QRCodeTrace> {
 
 export class PreTrace extends Message<PreTrace> {
   // @ts-ignore
-  identity: number;
+  identity: Uint8Array;
   // @ts-ignore
   partialSecretKeyForIdentityOfLocation: Uint8Array;
   // @ts-ignore

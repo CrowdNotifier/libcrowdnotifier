@@ -1,7 +1,7 @@
 import { performance } from "perf_hooks";
 
 import { Log } from "..";
-import { waitReady } from ".";
+import { waitReady } from "./helpers";
 import { crypto_hash_sha256, randombytes_buf } from "libsodium-wrappers-sumo";
 import mcl from "mcl-wasm";
 import { dec, enc, keyDer, keyGen } from "./ibe_primitives";
