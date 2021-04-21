@@ -1,13 +1,13 @@
-import { performance } from "perf_hooks";
+import {performance} from 'perf_hooks';
 
-import { Log } from "..";
-import { waitReady } from "./helpers";
-import { crypto_hash_sha256, randombytes_buf } from "libsodium-wrappers-sumo";
-import mcl from "mcl-wasm";
-import { dec, enc, keyDer, keyGen } from "./ibe_primitives";
-import { baseG1, baseG2 } from "./helpers";
+import {Log} from '..';
+import {waitReady} from './helpers';
+import {crypto_hash_sha256, randombytes_buf} from 'libsodium-wrappers-sumo';
+import mcl from 'mcl-wasm';
+import {dec, enc, keyDer, keyGen} from './ibe_primitives';
+import {baseG1, baseG2} from './helpers';
 
-const log = new Log("v3/benchmarks.spec");
+const log = new Log('v3/benchmarks.spec');
 log.info(`Starting at: ${new Date()}`);
 
 // Benchmarks functions.
@@ -22,7 +22,7 @@ function statistics(arr: Array<number>) {
   const total = arr.reduce((a, b) => a + b);
   const mean = total / n;
   const stddev = Math.sqrt(
-    arr.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n
+      arr.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n,
   );
 
   log.info(`total time: ${total} ms`);
@@ -52,7 +52,7 @@ function benchmark_fancy_hash() {
     nonces_2[i] = randombytes_buf(nonce_len);
   }
 
-  log.info("Fancy hash function.");
+  log.info('Fancy hash function.');
 
   for (let i = 0; i < nr_exp; ++i) {
     const info = infos[i];
@@ -114,7 +114,7 @@ function benchmark_encryption_round() {
     const ctxt = enc(masterPublicKey, identity, msgs[i]);
     const msgDec = dec(identity, skids[i], ctxt);
     if (msgDec === undefined) {
-      throw new Error("couldn't decrypt");
+      throw new Error('couldn\'t decrypt');
     }
     const t1 = performance.now();
     times[i] = t1 - t0;
@@ -204,7 +204,7 @@ function benchmark() {
     g2s[i] = mcl.mul(baseG2(), f1);
   }
 
-  log.info("Pairing primitive.");
+  log.info('Pairing primitive.');
 
   for (let i = 0; i < nr_exp; ++i) {
     const g1 = g1s[i];
@@ -220,7 +220,7 @@ function benchmark() {
 
   statistics(t_pair);
 
-  log.info("Keys generation.");
+  log.info('Keys generation.');
 
   for (let i = 0; i < nr_exp; ++i) {
     const t0 = performance.now();
@@ -236,7 +236,7 @@ function benchmark() {
 
   const [masterPublicKey, msk] = keyGen();
 
-  log.info("Encryption");
+  log.info('Encryption');
 
   for (let i = 0; i < nr_exp; ++i) {
     const t0 = performance.now();
@@ -248,7 +248,7 @@ function benchmark() {
 
   statistics(t_enc);
 
-  log.info("Key derivation");
+  log.info('Key derivation');
 
   for (let i = 0; i < nr_exp; ++i) {
     const t0 = performance.now();
@@ -260,13 +260,13 @@ function benchmark() {
 
   statistics(t_kd);
 
-  log.info("Decryption");
+  log.info('Decryption');
 
   for (let i = 0; i < nr_exp; ++i) {
     const t0 = performance.now();
     const msgDec = dec(ids[i], skids[i], ctxts[i]);
     if (msgDec === undefined) {
-      throw new Error("couldn't decrypt");
+      throw new Error('couldn\'t decrypt');
     }
     const t1 = performance.now();
     t_dec[i] = t1 - t0;
@@ -281,14 +281,14 @@ function benchmark() {
 async function main() {
   await waitReady();
 
-  log.info("Start benchmarks.");
+  log.info('Start benchmarks.');
 
   benchmark();
   benchmark_fancy_hash();
   benchmark_encryption_round();
   benchmark_bad_decrypt();
 
-  log.info("Benchmarks finished.");
+  log.info('Benchmarks finished.');
 }
 
 main().catch((e) => {

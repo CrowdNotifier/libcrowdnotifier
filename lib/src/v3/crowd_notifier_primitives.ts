@@ -3,12 +3,11 @@ import {
   crypto_box_keypair,
   crypto_box_seal,
   crypto_box_seal_open,
-  from_string,
   to_string,
   IKeyPair,
   randombytes_buf,
   crypto_secretbox_open_easy,
-} from "libsodium-wrappers-sumo";
+} from 'libsodium-wrappers-sumo';
 import {
   dec,
   enc,
@@ -16,21 +15,14 @@ import {
   keyDer,
   keyGen,
   NONCE_LENGTH,
-} from "./ibe_primitives";
-import mcl, { Fr, G1, G2 } from "mcl-wasm";
+} from './ibe_primitives';
+import mcl, {Fr, G1, G2} from 'mcl-wasm';
 import {
   EncryptedVenueVisit,
-  IEntryProof,
-  ILocationData,
-  IMasterTrace,
-  IOrganizerData,
-  IPreTrace,
-  ITrace,
-  ITraceProof,
   VenueInfo,
   ExposureEvent,
   MessagePayload,
-} from "./structs";
+} from './structs';
 import {
   TraceLocation,
   CrowdNotifierData,
@@ -42,22 +34,17 @@ import {
   PreTrace,
   Trace,
   AssociatedData,
-} from "./messages";
+} from './messages';
+import {QRCodeEntry as QRCodeEntryV2} from '../v2/proto';
+import {Message} from 'protobufjs';
 import {
-  QRCodeEntry as QRCodeEntryV2,
-  QRCodeContent as QRCodeContentV2,
-} from "../v2/proto";
-import { Message } from "protobufjs";
-import {
-  baseG2,
-  genId,
   getAffectedHours,
   getIBECiphertext,
   deriveNoncesAndNotificationKey,
   genIdV3,
   encryptAssociatedData,
-} from "./helpers";
-import { sodium } from "src";
+} from './helpers';
+import {sodium} from 'src';
 
 /**
  * Implements the cryptographic protocol in section B.1 of the
@@ -80,8 +67,8 @@ export function setupHA(): IKeyPair {
  *
  * These values are then encoded into two QR codes:
  * - The entry QR code containing the location, mpk and the seed
- * - The tracing QR code containing the same values as the previous, and additionally
- * masterSecretKeyLocation and ciphertextHealthAuthority
+ * - The tracing QR code containing the same values as the previous,
+ * and additionally masterSecretKeyLocation and ciphertextHealthAuthority
  *
  * Note: This code must be run client-side for security reasons
  * @param version
@@ -90,17 +77,18 @@ export function setupHA(): IKeyPair {
  * @param address max. 100 characters
  * @param validFrom timestamp (in seconds)
  * @param validTo timestamp (in seconds)
- * @param countryData byte array containing country-specific location data (e.g. NotifyMeLocationData)
+ * @param countryData byte array containing country-specific location data
+ * (e.g. NotifyMeLocationData)
  * @return QRCodePayload (public) and QRCodeTrace (private)
  */
 export function setupLocation(
-  version: number,
-  pkha: Uint8Array,
-  description: string,
-  address: string,
-  validFrom: Date,
-  validTo: Date,
-  countryData: Uint8Array
+    version: number,
+    pkha: Uint8Array,
+    description: string,
+    address: string,
+    validFrom: Date,
+    validTo: Date,
+    countryData: Uint8Array,
 ): {
   qrCodePayload: Message<QRCodePayload>;
   qrCodeTrace: Message<QRCodeTrace>;
@@ -152,7 +140,7 @@ export function setupLocation(
     cipherTextHealthAuthority: ctxtha,
   });
 
-  return { qrCodePayload: qrCodePayload, qrCodeTrace: qrCodeTrace };
+  return {qrCodePayload: qrCodePayload, qrCodeTrace: qrCodeTrace};
 }
 
 /**
@@ -164,27 +152,25 @@ export function getVenueInfoFromQrCodeV2(qrCodeString: string): VenueInfo {
   const qrCodeEntryV2 = QRCodeEntryV2.decode(qrCodeAsBytes);
   const qrCodeContentV2 = qrCodeEntryV2.data;
 
-  // TODO: Check if this is ok with how it handles possible null values
   if (
     !qrCodeContentV2.validFrom &&
     Date.now() < qrCodeContentV2.getValidFrom().getTime()
   ) {
-    throw new Error("Start timestamp isn't valid yet");
+    throw new Error('Start timestamp isn\'t valid yet');
   } else if (
     !qrCodeContentV2.validFrom &&
     Date.now() > qrCodeContentV2.getValidTo().getTime()
   ) {
-    throw new Error("End timestamp isn't valid anymore");
+    throw new Error('End timestamp isn\'t valid anymore');
   }
 
-  // Decided to include this as backwards-compatability is only required for NotifyMe
   const notifyMeLocationData = NotifyMeLocationData.create({
     version: 2,
     type: qrCodeContentV2.venueType,
     room: qrCodeContentV2.room,
   });
   const countryData: Uint8Array = NotifyMeLocationData.encode(
-    notifyMeLocationData
+      notifyMeLocationData,
   ).finish();
 
   return {
@@ -209,9 +195,9 @@ export function getVenueInfoFromQrCodeV3(qrCodeString: string): VenueInfo {
   const qrCodeAsBytes = sodium.from_string(qrCodeString);
   const qrCodePayload = QRCodePayload.decode(qrCodeAsBytes);
   if (Date.now() / 1000 < qrCodePayload.locationData.startTimestamp) {
-    throw new Error("Start timestamp isn't valid yet");
+    throw new Error('Start timestamp isn\'t valid yet');
   } else if (Date.now() / 1000 > qrCodePayload.locationData.endTimestamp) {
-    throw new Error("End timestamp isn't valid anymore");
+    throw new Error('End timestamp isn\'t valid anymore');
   }
 
   const cryptoData = deriveNoncesAndNotificationKey(qrCodeAsBytes);
@@ -237,23 +223,23 @@ export function getVenueInfoFromQrCodeV3(qrCodeString: string): VenueInfo {
  * @returns
  */
 export function getCheckIn(
-  arrivalTime: number,
-  departureTime: number,
-  venueInfo: VenueInfo
+    arrivalTime: number,
+    departureTime: number,
+    venueInfo: VenueInfo,
 ): EncryptedVenueVisit {
   const masterPublicKey = new mcl.G2();
   masterPublicKey.deserialize(venueInfo.publicKey);
 
-  const ibeCiphertextEntries = new Array<IEncryptedData>();
+  const ibeCiphertextEntries: Array<IEncryptedData> = [];
   getAffectedHours(arrivalTime, departureTime).forEach((hour) => {
     ibeCiphertextEntries.push(
-      getIBECiphertext(
-        arrivalTime,
-        departureTime,
-        hour,
-        venueInfo,
-        masterPublicKey
-      )
+        getIBECiphertext(
+            arrivalTime,
+            departureTime,
+            hour,
+            venueInfo,
+            masterPublicKey,
+        ),
     );
   });
   return {
@@ -271,14 +257,14 @@ export function getCheckIn(
  * to the health authority
  *
  * @param qrCodeTrace Private qr code generated during location setup
- * @param startTime time that the SARS-CoV-2-positive person entered the location
- * @param endTime time that the SARS-CoV-2-positive person exited the location
+ * @param startTime time the SARS-CoV-2-positive person entered the location
+ * @param endTime time the SARS-CoV-2-positive person exited the location
  * @returns List of pre-tracing keys
  */
 export function genPreTrace(
-  qrCodeTrace: QRCodeTrace,
-  startTime: number,
-  endTime: number
+    qrCodeTrace: QRCodeTrace,
+    startTime: number,
+    endTime: number,
 ): Array<Message<PreTraceWithProof>> {
   const qrCodePayload = QRCodePayload.decode(qrCodeTrace.qrCodePayload);
   const mpkl = new G2();
@@ -293,14 +279,14 @@ export function genPreTrace(
     nonce2: cryptoData.nonce2,
   });
 
-  const preTraceWithProofList = new Array<Message<PreTraceWithProof>>();
+  const preTraceWithProofList: Array<Message<PreTraceWithProof>> = [];
   getAffectedHours(startTime, endTime).forEach((hour) => {
     const startOfInterval = hour * 60 * 60;
     const identity = genIdV3(qrCodeTrace.qrCodePayload, startOfInterval);
-    const partialSecretKeyForIdentityOfLocation = keyDer(mskl, identity);
+    const pskidl = keyDer(mskl, identity);
     const preTrace = PreTrace.create({
       identity: identity,
-      partialSecretKeyForIdentityOfLocation: partialSecretKeyForIdentityOfLocation,
+      partialSecretKeyForIdentityOfLocation: pskidl,
       cipherTextHealthAuthority: qrCodeTrace.cipherTextHealthAuthority,
       notificationKey: cryptoData.notificationKey,
     });
@@ -320,7 +306,8 @@ export function genPreTrace(
 }
 
 /**
- * Function called by health authority to verify an uploaded pre-trace key and generate a corresponding trace key
+ * Function called by health authority to verify an uploaded pre-trace key
+ * and generate a corresponding trace key
  *
  * @param preTraceWithProof
  * @param haKeyPair
@@ -330,11 +317,11 @@ export function genPreTrace(
  * @returns
  */
 export function genTrace(
-  preTraceWithProof: PreTraceWithProof,
-  haKeyPair: IKeyPair,
-  version: number,
-  message: string,
-  countryData: Uint8Array
+    preTraceWithProof: PreTraceWithProof,
+    haKeyPair: IKeyPair,
+    version: number,
+    message: string,
+    countryData: Uint8Array,
 ): Message<Trace> | undefined {
   const preTrace = preTraceWithProof.preTrace;
   const traceProof = preTraceWithProof.proof;
@@ -342,9 +329,9 @@ export function genTrace(
   const mskh = new Fr();
   try {
     const mskh_raw = crypto_box_seal_open(
-      ctxtha,
-      haKeyPair.publicKey,
-      haKeyPair.privateKey
+        ctxtha,
+        haKeyPair.publicKey,
+        haKeyPair.privateKey,
     );
     mskh.deserialize(mskh_raw);
   } catch (e) {
@@ -355,8 +342,8 @@ export function genTrace(
   pskidl.deserialize(preTrace.partialSecretKeyForIdentityOfLocation);
   const skid = mcl.add(pskidl, pskidha);
   const identity = genIdV3(
-    preTraceWithProof.qrCodePayload,
-    preTraceWithProof.startOfInterval
+      preTraceWithProof.qrCodePayload,
+      preTraceWithProof.startOfInterval,
   );
 
   if (!verifyTrace(traceProof, preTrace, identity, skid)) {
@@ -365,11 +352,11 @@ export function genTrace(
 
   const nonce = randombytes_buf(NONCE_LENGTH);
   const encryptedAssociatedData = encryptAssociatedData(
-    preTrace.notificationKey,
-    message,
-    countryData,
-    nonce,
-    version
+      preTrace.notificationKey,
+      message,
+      countryData,
+      nonce,
+      version,
   );
   const trace = Trace.create({
     identity: preTrace.identity,
@@ -383,10 +370,10 @@ export function genTrace(
 }
 
 export function verifyTrace(
-  traceProof: TraceProof,
-  preTrace: PreTrace,
-  identity: Uint8Array,
-  skid: mcl.G1
+    traceProof: TraceProof,
+    preTrace: PreTrace,
+    identity: Uint8Array,
+    skid: mcl.G1,
 ): boolean {
   if (compare(preTrace.identity, identity) !== 0) {
     return false;
@@ -404,11 +391,9 @@ export function verifyTrace(
 }
 
 export function match(
-  rec: EncryptedVenueVisit,
-  tr: Trace
+    rec: EncryptedVenueVisit,
+    tr: Trace,
 ): ExposureEvent | undefined {
-  const id = rec.id;
-  const date = rec.date;
   const skid = new G1();
   skid.deserialize(tr.secretKeyForIdentity);
   let exposure: ExposureEvent | undefined = undefined;
@@ -422,9 +407,9 @@ export function match(
       return true;
     }
     const decryptedMsg = crypto_secretbox_open_easy(
-      messagePayload.notificationKey,
-      tr.encryptedAssociatedData,
-      tr.nonce
+        messagePayload.notificationKey,
+        tr.encryptedAssociatedData,
+        tr.nonce,
     );
     const associatedData = AssociatedData.decode(decryptedMsg);
     exposure = {
