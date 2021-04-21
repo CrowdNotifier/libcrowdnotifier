@@ -1,5 +1,5 @@
-import { Root, Message } from "protobufjs";
-import protoJSON from "./messages.json";
+import {Root, Message} from 'protobufjs';
+import protoJSON from './messages.json';
 
 export class TraceLocation extends Message<TraceLocation> {
   // @ts-ignore
@@ -77,27 +77,27 @@ export class NotifyMeLocationData extends Message<NotifyMeLocationData> {
   getVenueTypeStr(): string {
     switch (this.type) {
       case EVenueType.OTHER:
-        return "Other";
+        return 'Other';
       case EVenueType.MEETING_ROOM:
-        return "Meeting Room";
+        return 'Meeting Room';
       case EVenueType.CAFETERIA:
-        return "Cafeteria";
+        return 'Cafeteria';
       case EVenueType.PRIVATE_EVENT:
-        return "Private Event";
+        return 'Private Event';
       case EVenueType.CANTEEN:
-        return "Canteen";
+        return 'Canteen';
       case EVenueType.LIBRARY:
-        return "Library";
+        return 'Library';
       case EVenueType.LECTURE_ROOM:
-        return "Lecture Room";
+        return 'Lecture Room';
       case EVenueType.SHOP:
-        return "Shop";
+        return 'Shop';
       case EVenueType.GYM:
-        return "Gym";
+        return 'Gym';
       case EVenueType.KITCHEN_AREA:
-        return "Kitchen Area";
+        return 'Kitchen Area';
       case EVenueType.OFFICE_SPACE:
-        return "Office Space";
+        return 'Office Space';
     }
   }
 }
@@ -199,25 +199,25 @@ export class Trace extends Message<Trace> {
 
 try {
   const protoRoot = Root.fromJSON(protoJSON);
-  protoRoot.lookupType("crowdnotifier_v3.TraceLocation").ctor = TraceLocation;
+  protoRoot.lookupType('crowdnotifier_v3.TraceLocation').ctor = TraceLocation;
   protoRoot.lookupType(
-    "crowdnotifier_v3.CrowdNotifierData"
+      'crowdnotifier_v3.CrowdNotifierData',
   ).ctor = CrowdNotifierData;
-  protoRoot.lookupType("crowdnotifier_v3.QRCodePayload").ctor = QRCodePayload;
+  protoRoot.lookupType('crowdnotifier_v3.QRCodePayload').ctor = QRCodePayload;
   protoRoot.lookupType(
-    "crowdnotifier_v3.NotifyMeLocationData"
+      'crowdnotifier_v3.NotifyMeLocationData',
   ).ctor = NotifyMeLocationData;
-  protoRoot.lookupType("crowdnotifier_v3.QRCodeTrace").ctor = QRCodeTrace;
-  protoRoot.lookupType("crowdnotifier_v3.PreTrace").ctor = PreTrace;
-  protoRoot.lookupType("crowdnotifier_v3.TraceProof").ctor = TraceProof;
+  protoRoot.lookupType('crowdnotifier_v3.QRCodeTrace').ctor = QRCodeTrace;
+  protoRoot.lookupType('crowdnotifier_v3.PreTrace').ctor = PreTrace;
+  protoRoot.lookupType('crowdnotifier_v3.TraceProof').ctor = TraceProof;
   protoRoot.lookupType(
-    "crowdnotifier_v3.PreTraceWithProof"
+      'crowdnotifier_v3.PreTraceWithProof',
   ).ctor = PreTraceWithProof;
   protoRoot.lookupType(
-    "crowdnotifier_v3.NotifyMeAssociatedData"
+      'crowdnotifier_v3.NotifyMeAssociatedData',
   ).ctor = NotifyMeAssociatedData;
-  protoRoot.lookupType("crowdnotifier_v3.AssociatedData").ctor = AssociatedData;
-  protoRoot.lookupType("crowdnotifier_v3.Trace").ctor = Trace;
+  protoRoot.lookupType('crowdnotifier_v3.AssociatedData').ctor = AssociatedData;
+  protoRoot.lookupType('crowdnotifier_v3.Trace').ctor = Trace;
 } catch (e) {
-  throw new Error("couldn't load messages.proto: " + e.toString());
+  throw new Error('couldn\'t load messages.proto: ' + e.toString());
 }

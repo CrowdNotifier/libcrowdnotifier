@@ -1,5 +1,5 @@
-import mcl from "mcl-wasm";
-import { IEncryptedData } from "./ibe_primitives";
+import mcl from 'mcl-wasm';
+import {IEncryptedData} from './ibe_primitives';
 
 export interface IOrganizerData extends IOrganizerPublic {
   mskO: mcl.Fr;

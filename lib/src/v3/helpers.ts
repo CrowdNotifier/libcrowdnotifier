@@ -1,21 +1,14 @@
-import mcl from "mcl-wasm";
+import mcl from 'mcl-wasm';
 import {
-  crypto_box_keypair,
   crypto_hash_sha256,
   crypto_secretbox_easy,
   from_string,
   ready,
-} from "libsodium-wrappers-sumo";
-import {
-  EncryptedVenueVisit,
-  CryptoData,
-  VenueInfo,
-  MessagePayload,
-} from "./structs";
-import { enc, IEncryptedData } from "src/v2/ibe_primitives";
-import { AssociatedData, NotifyMeLocationData } from "./messages";
-import { QRCodeContent } from "src/v2";
-import { sodium } from "src";
+} from 'libsodium-wrappers-sumo';
+import {CryptoData, VenueInfo, MessagePayload} from './structs';
+import {enc, IEncryptedData} from 'src/v2/ibe_primitives';
+import {AssociatedData, NotifyMeLocationData} from './messages';
+import {QRCodeContent} from 'src/v2';
 
 /**
  * New methods and definitions
@@ -37,10 +30,10 @@ export async function waitReady() {
 export function baseG1(): mcl.G1 {
   const base = new mcl.G1();
   base.setStr(
-    "1 3685416753713387016781088315183077757961620795782546" +
-      "409894578378688607592378376318836054947676345821548104185464507 " +
-      "133950654494447647302047137994192122158493387593834962042654373" +
-      "6416511423956333506472724655353366534992391756441569"
+      '1 3685416753713387016781088315183077757961620795782546' +
+      '409894578378688607592378376318836054947676345821548104185464507 ' +
+      '133950654494447647302047137994192122158493387593834962042654373' +
+      '6416511423956333506472724655353366534992391756441569',
   );
   return base;
 }
@@ -49,21 +42,21 @@ export function baseG1(): mcl.G1 {
 export function baseG2(): mcl.G2 {
   const base = new mcl.G2();
   base.setStr(
-    "1 3527010695874666181871391160110601448900299527927752" +
-      "40219908644239793785735715026873347600343865175952761926303160 " +
-      "305914434424421370997125981475378163698647032547664755865937320" +
-      "6291635324768958432433509563104347017837885763365758 " +
-      "198515060228729193556805452117717163830086897821565573085937866" +
-      "5066344726373823718423869104263333984641494340347905 " +
-      "927553665492332455747201965776037880757740193453592970025027978" +
-      "793976877002675564980949289727957565575433344219582"
+      '1 3527010695874666181871391160110601448900299527927752' +
+      '40219908644239793785735715026873347600343865175952761926303160 ' +
+      '305914434424421370997125981475378163698647032547664755865937320' +
+      '6291635324768958432433509563104347017837885763365758 ' +
+      '198515060228729193556805452117717163830086897821565573085937866' +
+      '5066344726373823718423869104263333984641494340347905 ' +
+      '927553665492332455747201965776037880757740193453592970025027978' +
+      '793976877002675564980949289727957565575433344219582',
   );
   return base;
 }
 
 export function xor(a: Uint8Array, b: Uint8Array): Uint8Array {
   if (a.length !== b.length) {
-    throw new Error("cannot xor two Uint8Arrays of different length");
+    throw new Error('cannot xor two Uint8Arrays of different length');
   }
   const c = new Uint8Array(a.length);
   for (let i = 0; i < a.length; i++) {
@@ -75,64 +68,64 @@ export function xor(a: Uint8Array, b: Uint8Array): Uint8Array {
 /**
  * Generate an identifier.
  * @param info public information
- * @param counter counter
- * @param nonce1 a nonce
- * @param nonce2 an other nonce
+ * @param cntr counter
+ * @param n1 a nonce
+ * @param n2 an other nonce
  * @return an identifier
  */
 export function genId(
-  info: Uint8Array,
-  counter: number,
-  nonce1: Uint8Array,
-  nonce2: Uint8Array
+    info: Uint8Array,
+    cntr: number,
+    n1: Uint8Array,
+    n2: Uint8Array,
 ): Uint8Array {
-  const hash1 = crypto_hash_sha256(Uint8Array.from([...info, ...nonce1]));
+  const hash1 = crypto_hash_sha256(Uint8Array.from([...info, ...n1]));
 
   return crypto_hash_sha256(
-    Uint8Array.from([...hash1, ...nonce2, ...from_string(counter.toString())])
+      Uint8Array.from([...hash1, ...n2, ...from_string(cntr.toString())]),
   );
 }
 
 export function genIdV2(
-  affectedHour: number,
-  venueInfo: VenueInfo
+    affectedHour: number,
+    venueInfo: VenueInfo,
 ): Uint8Array {
   const hash1: Uint8Array = crypto_hash_sha256(
-    Uint8Array.from([
-      ...venueInfoToContentBytes(venueInfo),
-      ...venueInfo.nonce1,
-    ])
+      Uint8Array.from([
+        ...venueInfoToContentBytes(venueInfo),
+        ...venueInfo.nonce1,
+      ]),
   );
   return crypto_hash_sha256(
-    Uint8Array.from([
-      ...hash1,
-      ...venueInfo.nonce2,
-      ...from_string(affectedHour.toString()),
-    ])
+      Uint8Array.from([
+        ...hash1,
+        ...venueInfo.nonce2,
+        ...from_string(affectedHour.toString()),
+      ]),
   );
 }
 
 export function genIdV3(
-  qrCodePayload: Uint8Array,
-  interval_start: number
+    qrCodePayload: Uint8Array,
+    interval_start: number,
 ): Uint8Array {
   const cryptoData = deriveNoncesAndNotificationKey(qrCodePayload);
   const preid = crypto_hash_sha256(
-    Uint8Array.from([
-      ...from_string("CN-PREID"),
-      ...qrCodePayload,
-      ...cryptoData.nonce1,
-    ])
+      Uint8Array.from([
+        ...from_string('CN-PREID'),
+        ...qrCodePayload,
+        ...cryptoData.nonce1,
+      ]),
   );
   const duration = 3600; // Currently only one duration is supported
   const id = crypto_hash_sha256(
-    Uint8Array.from([
-      ...from_string("CN-ID"),
-      ...preid,
-      ...from_string(duration.toString()),
-      ...from_string(interval_start.toString()),
-      ...cryptoData.nonce2,
-    ])
+      Uint8Array.from([
+        ...from_string('CN-ID'),
+        ...preid,
+        ...from_string(duration.toString()),
+        ...from_string(interval_start.toString()),
+        ...cryptoData.nonce2,
+      ]),
   );
 
   return id;
@@ -144,16 +137,15 @@ export function genIdV3(
  * @returns An array containing nonce1, nonce2 and notifykey, in that order
  */
 export function deriveNoncesAndNotificationKey(
-  qrCodePayload: Uint8Array
+    qrCodePayload: Uint8Array,
 ): CryptoData {
-  // TODO: Check if this works!
-  const hkdf = require("futoin-hkdf");
+  const hkdf = require('futoin-hkdf');
   const ikm = qrCodePayload;
   const length = 96;
-  const salt = ""; // salt is empty
-  const info = "CrowdNotifier_v3";
-  const hash = "SHA-256";
-  const derivedBuffer: Uint8Array = hkdf(ikm, length, { salt, info, hash });
+  const salt = ''; // salt is empty
+  const info = 'CrowdNotifier_v3';
+  const hash = 'SHA-256';
+  const derivedBuffer: Uint8Array = hkdf(ikm, length, {salt, info, hash});
   return {
     nonce1: derivedBuffer.slice(0, 32),
     nonce2: derivedBuffer.slice(32, 64),
@@ -162,11 +154,11 @@ export function deriveNoncesAndNotificationKey(
 }
 
 export function getIBECiphertext(
-  arrivalTime: number,
-  departureTime: number,
-  affectedHour: number,
-  venueInfo: VenueInfo,
-  masterPublicKey: mcl.G2
+    arrivalTime: number,
+    departureTime: number,
+    affectedHour: number,
+    venueInfo: VenueInfo,
+    masterPublicKey: mcl.G2,
 ): IEncryptedData {
   let identity: Uint8Array;
   if (venueInfo.qrCodePayload == undefined) {
@@ -180,20 +172,20 @@ export function getIBECiphertext(
     notificationKey: venueInfo.notificationKey,
   };
   return enc(
-    masterPublicKey,
-    identity,
-    from_string(JSON.stringify(messagePayload))
+      masterPublicKey,
+      identity,
+      from_string(JSON.stringify(messagePayload)),
   );
 }
 
 export function getAffectedHours(
-  arrivalTime: number,
-  departureTime: number
+    arrivalTime: number,
+    departureTime: number,
 ): Array<number> {
   const ONE_HOUR_IN_SECONDS = 60 * 60;
   const startHour = Math.floor(arrivalTime / ONE_HOUR_IN_SECONDS);
   const endHour = Math.floor(departureTime / ONE_HOUR_IN_SECONDS);
-  const affectedHours = new Array();
+  const affectedHours: Array<number> = [];
   for (let i = startHour; i <= endHour; i++) {
     affectedHours.push(i);
   }
@@ -208,7 +200,7 @@ export function getAffectedHours(
  */
 function venueInfoToContentBytes(venueInfo: VenueInfo): Uint8Array {
   const notifyMeLocationData = NotifyMeLocationData.decode(
-    venueInfo.countryData
+      venueInfo.countryData,
   );
   const qrCodeContent = QRCodeContent.create({
     name: venueInfo.description,
@@ -223,11 +215,11 @@ function venueInfoToContentBytes(venueInfo: VenueInfo): Uint8Array {
 }
 
 export function encryptAssociatedData(
-  secretKey: Uint8Array,
-  message: string,
-  countryData: Uint8Array,
-  nonce: Uint8Array,
-  version: number
+    secretKey: Uint8Array,
+    message: string,
+    countryData: Uint8Array,
+    nonce: Uint8Array,
+    version: number,
 ): Uint8Array {
   const associatedData = AssociatedData.create({
     version: version,
@@ -235,12 +227,12 @@ export function encryptAssociatedData(
     countryData: countryData,
   });
   const messageBytes: Uint8Array = AssociatedData.encode(
-    associatedData
+      associatedData,
   ).finish();
   const encryptedMessage = crypto_secretbox_easy(
-    messageBytes,
-    nonce,
-    secretKey
+      messageBytes,
+      nonce,
+      secretKey,
   );
   return encryptedMessage;
 }
