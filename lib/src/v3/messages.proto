@@ -73,7 +73,6 @@ message CrowdNotifierData {
   uint32 type = 4; // exact semantic tbd
 }
 
-
 message NotifyMeLocationData {
   uint32 version = 1;
   VenueType type = 2;
@@ -98,4 +97,14 @@ message AssociatedData {
   int32 version = 1;
   string message = 2;
   bytes countryData = 3;
+}
+
+message NotifyMeAssociatedData {
+  int32 version = 1;
+  EventCriticality criticality = 2;
+}
+
+enum EventCriticality {
+  LOW = 0;
+  HIGH = 1;
 }

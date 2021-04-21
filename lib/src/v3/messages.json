@@ -224,6 +224,24 @@
               "id": 3
             }
           }
+        },
+        "NotifyMeAssociatedData": {
+          "fields": {
+            "version": {
+              "type": "int32",
+              "id": 1
+            },
+            "criticality": {
+              "type": "EventCriticality",
+              "id": 2
+            }
+          }
+        },
+        "EventCriticality": {
+          "values": {
+            "LOW": 0,
+            "HIGH": 1
+          }
         }
       }
     }
