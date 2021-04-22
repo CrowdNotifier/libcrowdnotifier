@@ -125,7 +125,6 @@ export function setupLocation(
     version: version,
     publicKey: mpk.serialize(),
     cryptographicSeed: seed,
-    type: 1,
   });
 
   const qrCodePayload = QRCodePayload.create({
@@ -137,7 +136,7 @@ export function setupLocation(
 
   const qrCodeTrace = QRCodeTrace.create({
     version: version,
-    qrCodePayload: qrCodePayload,
+    qrCodePayload: QRCodePayload.encode(qrCodePayload).finish(),
     masterSecretKeyLocation: mskl.serialize(),
     cipherTextHealthAuthority: ctxtha,
   });
