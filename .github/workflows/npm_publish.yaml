@@ -38,7 +38,7 @@ jobs:
           node-version: 12
           registry-url: https://registry.npmjs.org/
       - run: cd lib && npm ci
-      - run: cd lib && npm build
+      - run: cd lib && npm run build
       - run: cd lib && npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
@@ -53,7 +53,7 @@ jobs:
           node-version: 12
           registry-url: https://registry.npmjs.org/
       - run: cd app && npm ci
-      - run: cd lib && npm build
+      - run: cd lib && npm run build
       - run: cd app && npm publish
         env:
           NODE_AUTH_TOKEN: ${{SECRETS.NPM_TOKEN}}
