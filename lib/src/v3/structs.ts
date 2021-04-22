@@ -1,7 +1,7 @@
-import mcl from "mcl-wasm";
-import { IEncryptedData } from "./ibe_primitives";
-import { QRCodePayload, QRCodeTrace } from "./messages";
-import { Message } from "protobufjs";
+import mcl from 'mcl-wasm';
+import {IEncryptedData} from './ibe_primitives';
+import {QRCodePayload, QRCodeTrace} from './messages';
+import {Message} from 'protobufjs';
 
 export interface IOrganizerData extends IOrganizerPublic {
   mskO: mcl.Fr;

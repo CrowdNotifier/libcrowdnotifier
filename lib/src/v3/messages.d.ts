@@ -1,4 +1,4 @@
-import * as $protobuf from "protobufjs";
+import * as $protobuf from 'protobufjs';
 /** Namespace crowdnotifier_v3. */
 export namespace crowdnotifier_v3 {
 
@@ -20,12 +20,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a QRCodeTrace. */
     class QRCodeTrace implements IQRCodeTrace {
-
-        /**
+      /**
          * Constructs a new QRCodeTrace.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.IQRCodeTrace);
+      constructor(properties?: crowdnotifier_v3.IQRCodeTrace);
 
         /** QRCodeTrace version. */
         public version: number;
@@ -128,12 +127,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a PreTrace. */
     class PreTrace implements IPreTrace {
-
-        /**
+      /**
          * Constructs a new PreTrace.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.IPreTrace);
+      constructor(properties?: crowdnotifier_v3.IPreTrace);
 
         /** PreTrace identity. */
         public identity: Uint8Array;
@@ -233,12 +231,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a TraceProof. */
     class TraceProof implements ITraceProof {
-
-        /**
+      /**
          * Constructs a new TraceProof.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.ITraceProof);
+      constructor(properties?: crowdnotifier_v3.ITraceProof);
 
         /** TraceProof masterPublicKey. */
         public masterPublicKey: Uint8Array;
@@ -344,12 +341,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a PreTraceWithProof. */
     class PreTraceWithProof implements IPreTraceWithProof {
-
-        /**
+      /**
          * Constructs a new PreTraceWithProof.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.IPreTraceWithProof);
+      constructor(properties?: crowdnotifier_v3.IPreTraceWithProof);
 
         /** PreTraceWithProof preTrace. */
         public preTrace?: (crowdnotifier_v3.IPreTrace|null);
@@ -464,12 +460,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a Trace. */
     class Trace implements ITrace {
-
-        /**
+      /**
          * Constructs a new Trace.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.ITrace);
+      constructor(properties?: crowdnotifier_v3.ITrace);
 
         /** Trace identity. */
         public identity: Uint8Array;
@@ -578,12 +573,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a QRCodePayload. */
     class QRCodePayload implements IQRCodePayload {
-
-        /**
+      /**
          * Constructs a new QRCodePayload.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.IQRCodePayload);
+      constructor(properties?: crowdnotifier_v3.IQRCodePayload);
 
         /** QRCodePayload version. */
         public version: number;
@@ -689,12 +683,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a TraceLocation. */
     class TraceLocation implements ITraceLocation {
-
-        /**
+      /**
          * Constructs a new TraceLocation.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.ITraceLocation);
+      constructor(properties?: crowdnotifier_v3.ITraceLocation);
 
         /** TraceLocation version. */
         public version: number;
@@ -800,12 +793,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a CrowdNotifierData. */
     class CrowdNotifierData implements ICrowdNotifierData {
-
-        /**
+      /**
          * Constructs a new CrowdNotifierData.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.ICrowdNotifierData);
+      constructor(properties?: crowdnotifier_v3.ICrowdNotifierData);
 
         /** CrowdNotifierData version. */
         public version: number;
@@ -905,12 +897,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a NotifyMeLocationData. */
     class NotifyMeLocationData implements INotifyMeLocationData {
-
-        /**
+      /**
          * Constructs a new NotifyMeLocationData.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.INotifyMeLocationData);
+      constructor(properties?: crowdnotifier_v3.INotifyMeLocationData);
 
         /** NotifyMeLocationData version. */
         public version: number;
@@ -1022,12 +1013,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents an AssociatedData. */
     class AssociatedData implements IAssociatedData {
-
-        /**
+      /**
          * Constructs a new AssociatedData.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.IAssociatedData);
+      constructor(properties?: crowdnotifier_v3.IAssociatedData);
 
         /** AssociatedData version. */
         public version: number;
@@ -1121,12 +1111,11 @@ export namespace crowdnotifier_v3 {
 
     /** Represents a NotifyMeAssociatedData. */
     class NotifyMeAssociatedData implements INotifyMeAssociatedData {
-
-        /**
+      /**
          * Constructs a new NotifyMeAssociatedData.
          * @param [properties] Properties to set
          */
-        constructor(properties?: crowdnotifier_v3.INotifyMeAssociatedData);
+      constructor(properties?: crowdnotifier_v3.INotifyMeAssociatedData);
 
         /** NotifyMeAssociatedData version. */
         public version: number;
