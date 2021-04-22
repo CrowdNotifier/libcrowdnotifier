@@ -123,7 +123,7 @@ export function setupLocation(
 
   const crowdNotifierData = CrowdNotifierData.create({
     version: version,
-    publicKey: mpk,
+    publicKey: mpk.serialize(),
     cryptographicSeed: seed,
     type: 1,
   });
@@ -138,7 +138,7 @@ export function setupLocation(
   const qrCodeTrace = QRCodeTrace.create({
     version: version,
     qrCodePayload: qrCodePayload,
-    masterSecretKeyLocation: mskl,
+    masterSecretKeyLocation: mskl.serialize(),
     cipherTextHealthAuthority: ctxtha,
   });
 
