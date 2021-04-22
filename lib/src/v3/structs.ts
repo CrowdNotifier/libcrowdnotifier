@@ -1,5 +1,7 @@
-import mcl from 'mcl-wasm';
-import {IEncryptedData} from './ibe_primitives';
+import mcl from "mcl-wasm";
+import { IEncryptedData } from "./ibe_primitives";
+import { QRCodePayload, QRCodeTrace } from "./messages";
+import { Message } from "protobufjs";
 
 export interface IOrganizerData extends IOrganizerPublic {
   mskO: mcl.Fr;
@@ -24,12 +26,6 @@ export interface IEntryProof {
   nonce2: Uint8Array;
 }
 
-export interface ILocationData {
-  ent: mcl.G2;
-  pEnt: IEntryProof;
-  mtr: IMasterTrace;
-}
-
 export interface IPreTrace {
   id: Uint8Array;
   ctxtha: Uint8Array;
@@ -40,6 +36,11 @@ export interface ITraceProof {
   mpk: mcl.G2;
   nonce1: Uint8Array;
   nonce2: Uint8Array;
+}
+
+export interface ILocationData {
+  qrCodePayload: QRCodePayload;
+  qrCodeTrace: QRCodeTrace;
 }
 
 export interface ITrace {
