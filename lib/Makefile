@@ -13,6 +13,14 @@ src/v2/messages.json: src/v2/messages.proto
 src/v3/messages.json: src/v3/messages.proto
 	npx pbjs -t json $< > $@
 
+genProto: src/v3/messages.js src/v3/messages.d.ts
+
+src/v3/messages.d.ts: src/v3/messages.js
+	npx pbts -o src/v3/messages.d.ts src/v3/messages.js
+
+src/v3/messages.js: src/v3/messages.proto
+	npx pbjs -t static-module -w commonjs -o src/v3/messages.js src/v3/messages.proto
+
 publish: proto
 	rm -rf dist
 	npm run build
