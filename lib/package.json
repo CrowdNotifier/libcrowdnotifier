@@ -13,6 +13,7 @@
     "test": "for v in 2 2_1; do npm run testv$v; done",
     "testv2": "npx ts-node src/v2/main.spec.ts",
     "testv2_1": "npx ts-node src/v2_1/main.spec.ts",
+    "testv3": "npx ts-node src/v3/main.spec.ts",
     "benchmarks": "npx ts-node src/v2/benchmarks.spec.ts"
   },
   "dependencies": {
@@ -20,7 +21,8 @@
     "libsodium-wrappers-sumo": "^0.7.8",
     "mcl-wasm": "^0.7.1",
     "nestjs-proto-gen-ts": "^1.0.16",
-    "protobufjs": "^6.10.1",
+    "pbjs": "0.0.14",
+    "protobufjs": "^6.10.2",
     "ts-protoc-gen": "^0.14.0"
   },
   "devDependencies": {
