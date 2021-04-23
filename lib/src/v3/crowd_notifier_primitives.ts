@@ -19,7 +19,7 @@ import {
   keyGen,
   NONCE_LENGTH,
 } from './ibe_primitives';
-import mcl, {Fr, G1, G2} from 'mcl-wasm';
+import mcl from 'mcl-wasm';
 import {
   EncryptedVenueVisit,
   VenueInfo,
@@ -274,9 +274,9 @@ export function genPreTrace(
 
   const qrCodePayload = QRCodePayload.decode(qrCodeTrace.qrCodePayload);
 
-  const mpkl = new G2();
+  const mpkl = new mcl.G2();
   mpkl.deserialize(qrCodePayload.crowdNotifierData.publicKey);
-  const mskl = new Fr();
+  const mskl = new mcl.Fr();
   mskl.deserialize(qrCodeTrace.masterSecretKeyLocation);
   const cryptoData = deriveNoncesAndNotificationKey(qrCodeTrace.qrCodePayload);
 
@@ -363,7 +363,7 @@ export function verifyTrace(
   const preTrace = preTraceWithProof.preTrace;
   const traceProof = preTraceWithProof.proof;
   const ctxtha = preTrace.cipherTextHealthAuthority;
-  const mskh = new Fr();
+  const mskh = new mcl.Fr();
   try {
     const mskh_raw = crypto_box_seal_open(
         ctxtha,
@@ -375,7 +375,7 @@ export function verifyTrace(
     return undefined;
   }
   const pskidha = keyDer(mskh, preTrace.identity);
-  const pskidl = new G1();
+  const pskidl = new mcl.G1();
   pskidl.deserialize(preTrace.partialSecretKeyForIdentityOfLocation);
   const skid = mcl.add(pskidl, pskidha);
   const identity = genIdV3(
@@ -386,7 +386,7 @@ export function verifyTrace(
     return undefined;
   }
   const msg_orig = randombytes_buf(NONCE_LENGTH);
-  const mpk = new G2();
+  const mpk = new mcl.G2();
   mpk.deserialize(traceProof.masterPublicKey);
   const ctxt = enc(mpk, identity, msg_orig);
   const msg_dec = dec(identity, skid, ctxt);
@@ -401,7 +401,7 @@ export function match(
     rec: EncryptedVenueVisit,
     tr: Trace,
 ): ExposureEvent | undefined {
-  const skid = new G1();
+  const skid = new mcl.G1();
   skid.deserialize(tr.secretKeyForIdentity);
   let exposure: ExposureEvent | undefined = undefined;
   rec.ibeCiphertextEntries.every((encryptedData: IEncryptedData) => {
