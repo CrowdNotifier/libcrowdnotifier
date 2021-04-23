@@ -293,7 +293,7 @@ export function genPreTrace(
     const pskidl = keyDer(mskl, identity);
     const preTrace = PreTrace.create({
       identity: identity,
-      partialSecretKeyForIdentityOfLocation: pskidl,
+      partialSecretKeyForIdentityOfLocation: pskidl.serialize(),
       cipherTextHealthAuthority: qrCodeTrace.cipherTextHealthAuthority,
       notificationKey: cryptoData.notificationKey,
     });
