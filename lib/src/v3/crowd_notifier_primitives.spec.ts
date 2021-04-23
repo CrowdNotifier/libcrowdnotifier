@@ -111,7 +111,6 @@ export function simulateVisits(
   log.info('Location 1 got infected during three hours - creating pre-traces');
   const preTraceEncodingList = genPreTrace(
       location1.qrCodeTrace,
-      location1.qrCodePayload,
       location1.qrCodePayload.locationData.startTimestamp,
       location1.qrCodePayload.locationData.endTimestamp,
   );

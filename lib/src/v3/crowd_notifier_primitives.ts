@@ -8,6 +8,7 @@ import {
   randombytes_buf,
   crypto_secretbox_open_easy,
   to_base64,
+  from_base64,
   from_string,
 } from 'libsodium-wrappers-sumo';
 import {
@@ -267,10 +268,12 @@ export function getCheckIn(
  */
 export function genPreTrace(
     qrCodeTrace: QRCodeTrace,
-    qrCodePayload: QRCodePayload,
     startTime: number,
     endTime: number,
 ): Array<string> {
+
+  const qrCodePayload = QRCodePayload.decode(qrCodeTrace.qrCodePayload);
+
   const mpkl = new G2();
   mpkl.deserialize(qrCodePayload.crowdNotifierData.publicKey);
   const mskl = new Fr();
