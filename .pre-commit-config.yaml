@@ -1,0 +1,20 @@
+repos:
+-   repo: local
+    hooks:
+    -   id: eslint_lib
+        name: run eslint on lib
+        language: system
+        entry: bash -c 'cd lib && npm run lint:fix'
+        pass_filenames: false
+        types: [ts]
+        files: ^lib/
+
+-   repo: local
+    hooks:
+    -   id: eslint_app
+        name: run eslint on app
+        language: system
+        entry: bash -c 'cd app && npm run lint:fix'
+        pass_filenames: false
+        types: [ts]
+        files: ^app/
