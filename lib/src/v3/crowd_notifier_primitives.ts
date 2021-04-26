@@ -10,6 +10,7 @@ import {
   to_base64,
   from_base64,
   from_string,
+  crypto_secretbox_NONCEBYTES,
 } from 'libsodium-wrappers-sumo';
 import {
   dec,
@@ -26,20 +27,8 @@ import {
   ExposureEvent,
   MessagePayload,
 } from './structs';
-import {
-  TraceLocation,
-  CrowdNotifierData,
-  QRCodePayload,
-  QRCodeTrace,
-  NotifyMeLocationData,
-  PreTraceWithProof,
-  TraceProof,
-  PreTrace,
-  Trace,
-  AssociatedData,
-} from './messages';
+import {crowdnotifier_v3} from './messages';
 import {QRCodeEntry as QRCodeEntryV2} from '../v2/proto';
-import {Message} from 'protobufjs';
 import {
   getAffectedHours,
   getIBECiphertext,
@@ -93,15 +82,15 @@ export function setupLocation(
     validTo: Date,
     countryData: Uint8Array,
 ): {
-  qrCodePayload: string;
-  qrCodeTrace: string;
+    qrCodePayload: string;
+    qrCodeTrace: string;
 } {
   // exact semantics TBD
   if (version == undefined) {
     version = 3;
   }
 
-  const traceLocation = TraceLocation.create({
+  const traceLocation = crowdnotifier_v3.TraceLocation.create({
     version: version,
     description: description,
     address: address,
@@ -122,29 +111,35 @@ export function setupLocation(
   // Generate seed
   const seed = randombytes_buf(32);
 
-  const crowdNotifierData = CrowdNotifierData.create({
+  const crowdNotifierData = crowdnotifier_v3.CrowdNotifierData.create({
     version: version,
     publicKey: mpk.serialize(),
     cryptographicSeed: seed,
   });
 
-  const qrCodePayload = QRCodePayload.create({
+  const qrCodePayload = crowdnotifier_v3.QRCodePayload.create({
     version: version,
     locationData: traceLocation,
     crowdNotifierData: crowdNotifierData,
     countryData: countryData,
   });
 
-  const qrCodeTrace = QRCodeTrace.create({
+  const qrCodeTrace = crowdnotifier_v3.QRCodeTrace.create({
     version: version,
-    qrCodePayload: QRCodePayload.encode(qrCodePayload).finish(),
+    qrCodePayload: crowdnotifier_v3.QRCodePayload.encode(
+        qrCodePayload,
+    ).finish(),
     masterSecretKeyLocation: mskl.serialize(),
     cipherTextHealthAuthority: ctxtha,
   });
 
   return {
-    qrCodePayload: to_base64(QRCodePayload.encode(qrCodePayload).finish()),
-    qrCodeTrace: to_base64(QRCodeTrace.encode(qrCodeTrace).finish()),
+    qrCodePayload: to_base64(
+        crowdnotifier_v3.QRCodePayload.encode(qrCodePayload).finish(),
+    ),
+    qrCodeTrace: to_base64(
+        crowdnotifier_v3.QRCodeTrace.encode(qrCodeTrace).finish(),
+    ),
   };
 }
 
@@ -159,22 +154,24 @@ export function getVenueInfoFromQrCodeV2(qrCodeString: string): VenueInfo {
 
   if (
     !qrCodeContentV2.validFrom &&
-    Date.now() < qrCodeContentV2.getValidFrom().getTime()
+        Date.now() < qrCodeContentV2.getValidFrom().getTime()
   ) {
     throw new Error('Start timestamp isn\'t valid yet');
   } else if (
     !qrCodeContentV2.validFrom &&
-    Date.now() > qrCodeContentV2.getValidTo().getTime()
+        Date.now() > qrCodeContentV2.getValidTo().getTime()
   ) {
     throw new Error('End timestamp isn\'t valid anymore');
   }
 
-  const notifyMeLocationData = NotifyMeLocationData.create({
+  const notifyMeLocationData = crowdnotifier_v3.NotifyMeLocationData.create({
     version: 2,
-    type: qrCodeContentV2.venueType,
+    type: Object.values(crowdnotifier_v3.VenueType).indexOf(
+        qrCodeContentV2.getVenueTypeStr(),
+    ),
     room: qrCodeContentV2.room,
   });
-  const countryData: Uint8Array = NotifyMeLocationData.encode(
+  const countryData: Uint8Array = crowdnotifier_v3.NotifyMeLocationData.encode(
       notifyMeLocationData,
   ).finish();
 
@@ -197,8 +194,21 @@ export function getVenueInfoFromQrCodeV2(qrCodeString: string): VenueInfo {
  * @param qrCode
  */
 export function getVenueInfoFromQrCodeV3(qrCodeString: string): VenueInfo {
-  const qrCodeAsBytes = from_string(qrCodeString);
-  const qrCodePayload = QRCodePayload.decode(qrCodeAsBytes);
+  const qrCodeAsBytes = from_base64(qrCodeString);
+  const qrCodePayload = crowdnotifier_v3.QRCodePayload.decode(qrCodeAsBytes);
+  if (
+    !(
+      qrCodePayload.locationData &&
+            qrCodePayload.crowdNotifierData &&
+            qrCodePayload.locationData.description &&
+            qrCodePayload.locationData.address &&
+            qrCodePayload.locationData.startTimestamp &&
+            qrCodePayload.locationData.endTimestamp &&
+            qrCodePayload.crowdNotifierData.publicKey
+    )
+  ) {
+    throw new Error('qrCodePayload contained undefined or null fields');
+  }
   if (Date.now() / 1000 < qrCodePayload.locationData.startTimestamp) {
     throw new Error('Start timestamp isn\'t valid yet');
   } else if (Date.now() / 1000 > qrCodePayload.locationData.endTimestamp) {
@@ -207,7 +217,7 @@ export function getVenueInfoFromQrCodeV3(qrCodeString: string): VenueInfo {
 
   const cryptoData = deriveNoncesAndNotificationKey(qrCodeAsBytes);
   return {
-    description: qrCodePayload.locationData.descripion,
+    description: qrCodePayload.locationData.description,
     address: qrCodePayload.locationData.address,
     notificationKey: cryptoData.notificationKey,
     publicKey: qrCodePayload.crowdNotifierData.publicKey,
@@ -267,20 +277,30 @@ export function getCheckIn(
  * @returns List of pre-tracing keys as base-64 encoded strings
  */
 export function genPreTrace(
-    qrCodeTrace: QRCodeTrace,
+    qrCodeTrace: crowdnotifier_v3.QRCodeTrace,
     startTime: number,
     endTime: number,
 ): Array<string> {
-
-  const qrCodePayload = QRCodePayload.decode(qrCodeTrace.qrCodePayload);
-
+  const qrCodePayload = crowdnotifier_v3.QRCodePayload.decode(
+      qrCodeTrace.qrCodePayload,
+  );
+  if (
+    !(
+      qrCodePayload.crowdNotifierData &&
+            qrCodePayload.crowdNotifierData.publicKey
+    )
+  ) {
+    throw new Error('Couldn\'t read publickey from qrCodePayload');
+  }
   const mpkl = new mcl.G2();
   mpkl.deserialize(qrCodePayload.crowdNotifierData.publicKey);
   const mskl = new mcl.Fr();
   mskl.deserialize(qrCodeTrace.masterSecretKeyLocation);
-  const cryptoData = deriveNoncesAndNotificationKey(qrCodeTrace.qrCodePayload);
+  const cryptoData = deriveNoncesAndNotificationKey(
+      qrCodeTrace.qrCodePayload,
+  );
 
-  const traceProof = TraceProof.create({
+  const traceProof = crowdnotifier_v3.TraceProof.create({
     masterPublicKey: qrCodePayload.crowdNotifierData.publicKey,
     nonce1: cryptoData.nonce1,
     nonce2: cryptoData.nonce2,
@@ -291,14 +311,14 @@ export function genPreTrace(
     const startOfInterval = hour * 60 * 60;
     const identity = genIdV3(qrCodeTrace.qrCodePayload, startOfInterval);
     const pskidl = keyDer(mskl, identity);
-    const preTrace = PreTrace.create({
+    const preTrace = crowdnotifier_v3.PreTrace.create({
       identity: identity,
       partialSecretKeyForIdentityOfLocation: pskidl.serialize(),
       cipherTextHealthAuthority: qrCodeTrace.cipherTextHealthAuthority,
       notificationKey: cryptoData.notificationKey,
     });
 
-    const preTraceWithProof = PreTraceWithProof.create({
+    const preTraceWithProof = crowdnotifier_v3.PreTraceWithProof.create({
       preTrace: preTrace,
       proof: traceProof,
       qrCodePayload: qrCodeTrace.qrCodePayload,
@@ -308,7 +328,11 @@ export function genPreTrace(
     });
 
     preTraceWithProofList.push(
-        to_base64(PreTraceWithProof.encode(preTraceWithProof).finish()),
+        to_base64(
+            crowdnotifier_v3.PreTraceWithProof.encode(
+                preTraceWithProof,
+            ).finish(),
+        ),
     );
   });
   return preTraceWithProofList;
@@ -326,7 +350,7 @@ export function genPreTrace(
  * @returns as base-64 encoded string
  */
 export function genTrace(
-    preTraceWithProof: PreTraceWithProof,
+    preTraceWithProof: crowdnotifier_v3.PreTraceWithProof,
     haKeyPair: IKeyPair,
     version: number,
     message: string,
@@ -337,31 +361,47 @@ export function genTrace(
     return undefined;
   }
 
-  const nonce = randombytes_buf(NONCE_LENGTH);
+  const nonce = randombytes_buf(crypto_secretbox_NONCEBYTES);
   const encryptedAssociatedData = encryptAssociatedData(
-      preTraceWithProof.preTrace.notificationKey,
-      message,
-      countryData,
-      nonce,
-      version,
+        preTraceWithProof.preTrace!.notificationKey!,
+        message,
+        countryData,
+        nonce,
+        version,
   );
-  const trace = Trace.create({
-    identity: preTraceWithProof.preTrace.identity,
-    secretKeyForIdentity: identitySecret,
+  const trace = crowdnotifier_v3.Trace.create({
+    identity: preTraceWithProof.preTrace!.identity,
+    secretKeyForIdentity: identitySecret.serialize(),
     startTime: preTraceWithProof.startTime,
     endTime: preTraceWithProof.endTime,
     nonce: nonce,
     encryptedAssociatedData: encryptedAssociatedData,
   });
-  return to_base64(Trace.encode(trace).finish());
+  return to_base64(crowdnotifier_v3.Trace.encode(trace).finish());
 }
 
 export function verifyTrace(
-    preTraceWithProof: PreTraceWithProof,
+    preTraceWithProof: crowdnotifier_v3.PreTraceWithProof,
     haKeyPair: IKeyPair,
 ): mcl.G1 | undefined {
   const preTrace = preTraceWithProof.preTrace;
   const traceProof = preTraceWithProof.proof;
+  if (
+    !(
+      preTrace &&
+            traceProof &&
+            preTraceWithProof.startOfInterval &&
+            preTrace.identity &&
+            preTrace.partialSecretKeyForIdentityOfLocation &&
+            preTrace.cipherTextHealthAuthority &&
+            preTrace.notificationKey &&
+            traceProof.masterPublicKey &&
+            traceProof.nonce1 &&
+            traceProof.nonce2
+    )
+  ) {
+    throw new Error('PreTraceWithProof contained undefined fields');
+  }
   const ctxtha = preTrace.cipherTextHealthAuthority;
   const mskh = new mcl.Fr();
   try {
@@ -399,7 +439,7 @@ export function verifyTrace(
 
 export function match(
     rec: EncryptedVenueVisit,
-    tr: Trace,
+    tr: crowdnotifier_v3.Trace,
 ): ExposureEvent | undefined {
   const skid = new mcl.G1();
   skid.deserialize(tr.secretKeyForIdentity);
@@ -409,16 +449,21 @@ export function match(
     if (!msgP) {
       return true; // continue
     }
-    const messagePayload: MessagePayload = JSON.parse(to_string(msgP));
+    const msgParsed = JSON.parse(to_string(msgP));
+    const messagePayload: MessagePayload = msgParsed;
     if (!messagePayload.notificationKey) {
       return true;
     }
+    // This is required due to the way JSON stringifies UInt8Arrays
+    const nkey = Uint8Array.from(msgParsed.notificationKey.data);
     const decryptedMsg = crypto_secretbox_open_easy(
-        messagePayload.notificationKey,
         tr.encryptedAssociatedData,
         tr.nonce,
+        nkey,
     );
-    const associatedData = AssociatedData.decode(decryptedMsg);
+    const associatedData = crowdnotifier_v3.AssociatedData.decode(
+        decryptedMsg,
+    );
     exposure = {
       id: rec.id,
       startTimestamp: messagePayload.arrivalTime,
