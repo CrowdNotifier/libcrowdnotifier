@@ -7,7 +7,7 @@ import {
 } from 'libsodium-wrappers-sumo';
 import {CryptoData, VenueInfo, MessagePayload} from './structs';
 import {enc, IEncryptedData} from './ibe_primitives';
-import {AssociatedData, NotifyMeLocationData} from './messages';
+import {crowdnotifier_v3} from './messages';
 import {QRCodeContent as QRCodeContentV2} from '../v2';
 
 /**
@@ -31,9 +31,9 @@ export function baseG1(): mcl.G1 {
   const base = new mcl.G1();
   base.setStr(
       '1 3685416753713387016781088315183077757961620795782546' +
-      '409894578378688607592378376318836054947676345821548104185464507 ' +
-      '133950654494447647302047137994192122158493387593834962042654373' +
-      '6416511423956333506472724655353366534992391756441569',
+            '409894578378688607592378376318836054947676345821548104185464507 ' +
+            '133950654494447647302047137994192122158493387593834962042654373' +
+            '6416511423956333506472724655353366534992391756441569',
   );
   return base;
 }
@@ -43,13 +43,13 @@ export function baseG2(): mcl.G2 {
   const base = new mcl.G2();
   base.setStr(
       '1 3527010695874666181871391160110601448900299527927752' +
-      '40219908644239793785735715026873347600343865175952761926303160 ' +
-      '305914434424421370997125981475378163698647032547664755865937320' +
-      '6291635324768958432433509563104347017837885763365758 ' +
-      '198515060228729193556805452117717163830086897821565573085937866' +
-      '5066344726373823718423869104263333984641494340347905 ' +
-      '927553665492332455747201965776037880757740193453592970025027978' +
-      '793976877002675564980949289727957565575433344219582',
+            '40219908644239793785735715026873347600343865175952761926303160 ' +
+            '305914434424421370997125981475378163698647032547664755865937320' +
+            '6291635324768958432433509563104347017837885763365758 ' +
+            '198515060228729193556805452117717163830086897821565573085937866' +
+            '5066344726373823718423869104263333984641494340347905 ' +
+            '927553665492332455747201965776037880757740193453592970025027978' +
+            '793976877002675564980949289727957565575433344219582',
   );
   return base;
 }
@@ -107,7 +107,7 @@ export function genIdV2(
 
 export function genIdV3(
     qrCodePayload: Uint8Array,
-    interval_start: number,
+    interval_start: number | Long,
 ): Uint8Array {
   const cryptoData = deriveNoncesAndNotificationKey(qrCodePayload);
   const preid = crypto_hash_sha256(
@@ -138,7 +138,12 @@ export function toBytesInt32(num: number): Uint8Array {
   return new Uint8Array(arr);
 }
 
-export function toBytesInt64(num: number): Uint8Array {
+/**
+ * num MUST be of type number, Long, or BigInt for this method to work properly
+ * @param num
+ * @returns
+ */
+export function toBytesInt64(num: any): Uint8Array {
   const arr = new Uint8Array([
     (num & 0xff00000000000000) >> 56,
     (num & 0x00ff000000000000) >> 48,
@@ -192,11 +197,8 @@ export function getIBECiphertext(
     departureTime: departureTime,
     notificationKey: venueInfo.notificationKey,
   };
-  return enc(
-      masterPublicKey,
-      identity,
-      from_string(JSON.stringify(messagePayload)),
-  );
+  const msgPBytes = from_string(JSON.stringify(messagePayload));
+  return enc(masterPublicKey, identity, msgPBytes);
 }
 
 export function getAffectedHours(
@@ -220,7 +222,7 @@ export function getAffectedHours(
  * @returns byte array representing QRCodeContent
  */
 function venueInfoToContentBytes(venueInfo: VenueInfo): Uint8Array {
-  const notifyMeLocationData = NotifyMeLocationData.decode(
+  const notifyMeLocationData = crowdnotifier_v3.NotifyMeLocationData.decode(
       venueInfo.countryData,
   );
   const qrCodeContent = QRCodeContentV2.create({
@@ -242,12 +244,12 @@ export function encryptAssociatedData(
     nonce: Uint8Array,
     version: number,
 ): Uint8Array {
-  const associatedData = AssociatedData.create({
+  const associatedData = crowdnotifier_v3.AssociatedData.create({
     version: version,
     message: message,
     countryData: countryData,
   });
-  const messageBytes: Uint8Array = AssociatedData.encode(
+  const messageBytes: Uint8Array = crowdnotifier_v3.AssociatedData.encode(
       associatedData,
   ).finish();
   const encryptedMessage = crypto_secretbox_easy(
