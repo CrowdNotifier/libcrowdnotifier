@@ -5,13 +5,7 @@ import {
   toBytesInt32,
   toBytesInt64,
 } from './helpers';
-import {
-  IdentityTestVector,
-  HkdfTestVector,
-  identityTestVectors,
-  hkdfTestVectors,
-} from './testvectors';
-import {from_string} from 'libsodium-wrappers-sumo';
+import {identityTestVectors, hkdfTestVectors} from './testvectors';
 
 const log = new Log('v3/helpers_v3.spec');
 
@@ -34,7 +28,8 @@ export function testHKDFDerivation() {
         'Nonce 2 doesn\'t match',
     );
     log.assertTrue(
-        Buffer.compare(tv.notificationKey, cryptoData.notificationKey) === 0,
+        Buffer.compare(tv.notificationKey, cryptoData.notificationKey) ===
+                0,
         'NotificationKeys don\'t match',
     );
   }
@@ -64,6 +59,9 @@ export function testGenIdV3() {
     log.info('Verifying genIdV3 for', JSON.stringify(tv));
     const id = genIdV3(tv.qrCodePayload, tv.startOfInterval);
     log.assertTrue(id.length === tv.identity.length, 'id has wrong length');
-    log.assertTrue(Buffer.compare(id, tv.identity) === 0, 'Wrong value for id');
+    log.assertTrue(
+        Buffer.compare(id, tv.identity) === 0,
+        'Wrong value for id',
+    );
   }
 }

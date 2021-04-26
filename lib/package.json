@@ -1,39 +1,39 @@
 {
-  "name": "@c4dt/libcrowdnotifier",
-  "repository": "https://github.com/CrowdNotifier/libcrowdnotifier",
-  "license": "MPL-2.0",
-  "author": "Linus Gasser <linus.gasser@epfl.ch>",
-  "version": "1.2.0-prerelease8",
-  "private": false,
-  "scripts": {
-    "build": "npx tsc --build tsconfig.json",
-    "doc": "typedoc --tsconfig tsconfig.json --out ../docs src/ types/",
-    "lint": "npx eslint src/*/*ts src/*ts",
-    "lint:fix": "npx eslint --fix src/*/*ts src/*ts",
-    "test": "for v in 2 2_1; do npm run testv$v; done",
-    "testv2": "npx ts-node src/v2/main.spec.ts",
-    "testv2_1": "npx ts-node src/v2_1/main.spec.ts",
-    "testv3": "npx ts-node src/v3/main.spec.ts",
-    "benchmarks": "npx ts-node src/v2/benchmarks.spec.ts"
-  },
-  "dependencies": {
-    "futoin-hkdf": "^1.3.3",
-    "libsodium-wrappers-sumo": "^0.7.8",
-    "mcl-wasm": "^0.7.1",
-    "nestjs-proto-gen-ts": "^1.0.16",
-    "pbjs": "0.0.14",
-    "protobufjs": "^6.10.2",
-    "ts-protoc-gen": "^0.14.0"
-  },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.10.0",
-    "@typescript-eslint/parser": "^4.10.0",
-    "eslint": "^7.15.0",
-    "eslint-config-google": "^0.14.0",
-    "ts-node": "^9.0.0",
-    "typedoc": "^0.20.32",
-    "typescript": "^4.0.5"
-  },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts"
+    "name": "@c4dt/libcrowdnotifier",
+    "repository": "https://github.com/CrowdNotifier/libcrowdnotifier",
+    "license": "MPL-2.0",
+    "author": "Linus Gasser <linus.gasser@epfl.ch>",
+    "version": "1.2.0-prerelease8",
+    "private": false,
+    "scripts": {
+        "build": "npx tsc --build tsconfig.json",
+        "doc": "typedoc --tsconfig tsconfig.json --out ../docs src/ types/",
+        "lint": "npx eslint src/*/*ts src/*ts --ignore-pattern src/**/*.d.ts",
+        "lint:fix": "npx eslint --fix src/*/*ts src/*ts --ignore-pattern src/**/*.d.ts",
+        "test": "for v in 2 2_1; do npm run testv$v; done",
+        "testv2": "npx ts-node src/v2/main.spec.ts",
+        "testv2_1": "npx ts-node src/v2_1/main.spec.ts",
+        "testv3": "npx ts-node src/v3/main.spec.ts",
+        "benchmarks": "npx ts-node src/v2/benchmarks.spec.ts"
+    },
+    "dependencies": {
+        "futoin-hkdf": "^1.3.3",
+        "libsodium-wrappers-sumo": "^0.7.8",
+        "mcl-wasm": "^0.7.1",
+        "nestjs-proto-gen-ts": "^1.0.16",
+        "pbjs": "0.0.14",
+        "protobufjs": "^6.10.2",
+        "ts-protoc-gen": "^0.14.0"
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^4.10.0",
+        "@typescript-eslint/parser": "^4.10.0",
+        "eslint": "^7.15.0",
+        "eslint-config-google": "^0.14.0",
+        "ts-node": "^9.0.0",
+        "typedoc": "^0.20.32",
+        "typescript": "^4.0.5"
+    },
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts"
 }
