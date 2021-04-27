@@ -4,7 +4,7 @@ import {Log} from '..';
 import {waitReady} from './helpers';
 import {crypto_hash_sha256, randombytes_buf} from 'libsodium-wrappers-sumo';
 import mcl from 'mcl-wasm';
-import {dec, enc, keyDer, keyGen} from './ibe_primitives';
+import {dec, enc, keyDer, keyGen} from '../v2/ibe_primitives';
 import {baseG1, baseG2} from './helpers';
 
 const log = new Log('v3/benchmarks.spec');
