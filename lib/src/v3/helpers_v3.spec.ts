@@ -1,13 +1,37 @@
 import {Log} from '../log';
-import {
-  genIdV3,
-  deriveNoncesAndNotificationKey,
-  toBytesInt32,
-  toBytesInt64,
-} from './helpers';
-import {identityTestVectors, hkdfTestVectors} from './testvectors';
+import {deriveNoncesAndNotificationKey, genIdV3,
+  toBytesInt32, toBytesInt64} from './helpers';
+import {hkdfTestVectors, identityTestVectors} from './testvectors';
+const Long = require('long');
 
 const log = new Log('v3/helpers_v3.spec');
+
+// Test the values in the toBytes methods.
+export function testToBytes() {
+  // Test toBytesInt32
+  toBytesInt32(2 ** 31 - 1);
+  toBytesInt32(-(2 ** 31));
+  log.throws(() => toBytesInt32(2 ** 31), 'Shouldn\'t accept 2**32');
+  log.throws(() => toBytesInt32(-(2 ** 31)-1),
+      'Shouldn\'t accept -(2**32)-1');
+
+  // Test numbers in toBytesInt64
+  toBytesInt64(Number.MAX_SAFE_INTEGER);
+  toBytesInt64(Number.MIN_SAFE_INTEGER);
+  log.throws(() => toBytesInt64(Number.MAX_SAFE_INTEGER + 1));
+  log.throws(() => toBytesInt64(Number.MIN_SAFE_INTEGER - 1));
+
+  // Test bigint in toBytesInt64
+  const bufMax = toBytesInt64(BigInt(2) ** BigInt(63)-BigInt(1));
+  const bufMin = toBytesInt64(-(BigInt(2) ** BigInt(63)));
+  log.throws(() => toBytesInt64(BigInt(2) ** BigInt(63)));
+  log.throws(() => toBytesInt64(-(BigInt(2) ** BigInt(63)) - BigInt(1)));
+
+  // Test Long in toBytesInt64
+  toBytesInt64(Long.fromBytesBE(bufMax));
+  toBytesInt64(Long.fromBytesBE(bufMin));
+  // Cannot check out-of-bounds Long, as it's always 64 bits...
+}
 
 // One set of test vectors for the hkdf derivation method.
 export function testHKDFDerivation() {
@@ -29,7 +53,7 @@ export function testHKDFDerivation() {
     );
     log.assertTrue(
         Buffer.compare(tv.notificationKey, cryptoData.notificationKey) ===
-                0,
+            0,
         'NotificationKeys don\'t match',
     );
   }

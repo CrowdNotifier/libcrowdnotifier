@@ -1,110 +1,40 @@
 import mcl from 'mcl-wasm';
-import {
-  crypto_hash_sha256,
-  crypto_secretbox_easy,
-  from_string,
-  ready,
-} from 'libsodium-wrappers-sumo';
-import {CryptoData, VenueInfo, MessagePayload} from './structs';
-import {enc, IEncryptedData} from './ibe_primitives';
+import {crypto_hash_sha256, crypto_secretbox_easy, from_string} from
+  'libsodium-wrappers-sumo';
+import {CryptoData, MessagePayload, VenueInfo} from './structs';
+import {enc, IEncryptedData} from '../v2/ibe_primitives';
 import {crowdnotifier_v3} from './messages';
-import {QRCodeContent as QRCodeContentV2} from '../v2';
+import {baseG1, baseG2, genId, QRCodeContent as QRCodeContentV2,
+  waitReady, xor} from '../v2';
+
+export {waitReady, baseG1, baseG2, xor, genId};
 
 /**
  * New methods and definitions
  */
 
 /**
- * Waits for the mcl and libsodium libraries to be ready.
+ * Generates an id for the version 2 QRcodes using the version 3 protobufs.
+ *
+ * @param affectedHour of the visit
+ * @param venueInfo from the QRcode
  */
-export async function waitReady() {
-  await new Promise((resolve) => {
-    mcl.init(mcl.BLS12_381).then(() => {
-      resolve(undefined);
-    });
-  });
-  await ready;
-}
-
-// from https://github.com/zcash/librustzcash/blob/6e0364cd42a2b3d2b958a54771ef51a8db79dd29/pairing/src/bls12_381/README.md#generators
-export function baseG1(): mcl.G1 {
-  const base = new mcl.G1();
-  base.setStr(
-      '1 3685416753713387016781088315183077757961620795782546' +
-            '409894578378688607592378376318836054947676345821548104185464507 ' +
-            '133950654494447647302047137994192122158493387593834962042654373' +
-            '6416511423956333506472724655353366534992391756441569',
-  );
-  return base;
-}
-
-// from https://github.com/zcash/librustzcash/blob/6e0364cd42a2b3d2b958a54771ef51a8db79dd29/pairing/src/bls12_381/README.md#generators
-export function baseG2(): mcl.G2 {
-  const base = new mcl.G2();
-  base.setStr(
-      '1 3527010695874666181871391160110601448900299527927752' +
-            '40219908644239793785735715026873347600343865175952761926303160 ' +
-            '305914434424421370997125981475378163698647032547664755865937320' +
-            '6291635324768958432433509563104347017837885763365758 ' +
-            '198515060228729193556805452117717163830086897821565573085937866' +
-            '5066344726373823718423869104263333984641494340347905 ' +
-            '927553665492332455747201965776037880757740193453592970025027978' +
-            '793976877002675564980949289727957565575433344219582',
-  );
-  return base;
-}
-
-export function xor(a: Uint8Array, b: Uint8Array): Uint8Array {
-  if (a.length !== b.length) {
-    throw new Error('cannot xor two Uint8Arrays of different length');
-  }
-  const c = new Uint8Array(a.length);
-  for (let i = 0; i < a.length; i++) {
-    c[i] = a[i] ^ b[i];
-  }
-  return c;
-}
-
-/**
- * Generate an identifier.
- * @param info public information
- * @param cntr counter
- * @param n1 a nonce
- * @param n2 an other nonce
- * @return an identifier
- */
-export function genId(
-    info: Uint8Array,
-    cntr: number,
-    n1: Uint8Array,
-    n2: Uint8Array,
-): Uint8Array {
-  const hash1 = crypto_hash_sha256(Uint8Array.from([...info, ...n1]));
-
-  return crypto_hash_sha256(
-      Uint8Array.from([...hash1, ...n2, ...from_string(cntr.toString())]),
-  );
-}
-
 export function genIdV2(
     affectedHour: number,
     venueInfo: VenueInfo,
 ): Uint8Array {
-  const hash1: Uint8Array = crypto_hash_sha256(
-      Uint8Array.from([
-        ...venueInfoToContentBytes(venueInfo),
-        ...venueInfo.nonce1,
-      ]),
-  );
-  return crypto_hash_sha256(
-      Uint8Array.from([
-        ...hash1,
-        ...venueInfo.nonce2,
-        ...from_string(affectedHour.toString()),
-      ]),
-  );
+  return genId(venueInfoToContentBytes(venueInfo),
+      affectedHour,
+      venueInfo.nonce1,
+      venueInfo.nonce2);
 }
 
+/**
+ * Generates an id for the version 3 QRcodes
+ *
+ * @param qrCodePayload from the scanned venue QRcode
+ * @param interval_start of the visit
+ */
 export function genIdV3(
     qrCodePayload: Uint8Array,
     interval_start: number | Long,
@@ -118,7 +48,7 @@ export function genIdV3(
       ]),
   );
   const duration = 3600; // Currently only one duration is supported
-  const id = crypto_hash_sha256(
+  return crypto_hash_sha256(
       Uint8Array.from([
         ...from_string('CN-ID'),
         ...preid,
@@ -127,34 +57,50 @@ export function genIdV3(
         ...cryptoData.nonce2,
       ]),
   );
-
-  return id;
-}
-
-export function toBytesInt32(num: number): Uint8Array {
-  const arr = new ArrayBuffer(4); // an Int32 takes 4 bytes
-  const view = new DataView(arr);
-  view.setUint32(0, num, false); // byteOffset = 0; litteEndian = false
-  return new Uint8Array(arr);
 }
 
 /**
- * num MUST be of type number, Long, or BigInt for this method to work properly
- * @param num
- * @returns
+ * Converts the given number to a BigEndian binary representation.
+ *
+ * @param num to be converted
+ * @return the BigEndian int32 representation
  */
-export function toBytesInt64(num: any): Uint8Array {
-  const arr = new Uint8Array([
-    (num & 0xff00000000000000) >> 56,
-    (num & 0x00ff000000000000) >> 48,
-    (num & 0x0000ff0000000000) >> 40,
-    (num & 0x000000ff00000000) >> 32,
-    (num & 0x00000000ff000000) >> 24,
-    (num & 0x0000000000ff0000) >> 16,
-    (num & 0x000000000000ff00) >> 8,
-    num & 0x00000000000000ff,
-  ]);
-  return new Uint8Array(arr.buffer);
+export function toBytesInt32(num: number): Uint8Array {
+  const buf = Buffer.alloc(4);
+  // Buffer.writeInt32BE does all the boundary checks
+  buf.writeInt32BE(num);
+  return buf;
+}
+
+/**
+ * Converts the given number of type number, Long, or bigint, to a BigEndian
+ * binary representation.
+ * It throws an error if the value is out of bounds.
+ *
+ * @param num either a number, Long, or a bigint
+ * @returns BigEndian 64-bit integer binary representation of the number
+ */
+export function toBytesInt64(num: (number | Long | bigint)): Uint8Array {
+  if (typeof num === 'number') {
+    if (num > Number.MAX_SAFE_INTEGER) {
+      throw new Error('This number is not safe to convert to an Int64');
+    }
+    if (num < Number.MIN_SAFE_INTEGER) {
+      throw new Error('This number is not safe to convert to an Int64');
+    }
+    num = BigInt(num);
+  } else if (typeof num === 'bigint') {
+    if (num !== BigInt.asIntN(64, num)) {
+      throw new Error('This bigint is too big to be converted to an Int64');
+    }
+  } else {
+    console.log(num);
+    return Buffer.from(num.toBytesBE());
+  }
+
+  const buf = Buffer.alloc(8);
+  buf.writeBigInt64BE(num);
+  return buf;
 }
 
 /**
@@ -179,6 +125,16 @@ export function deriveNoncesAndNotificationKey(
   };
 }
 
+/**
+ * Returns the encrypted ciphertext that will be stored by the visitor.
+ *
+ * @param arrivalTime
+ * @param departureTime
+ * @param affectedHour
+ * @param venueInfo
+ * @param masterPublicKey
+ * @return encrypted ciphertext to be stored by the visitor.
+ */
 export function getIBECiphertext(
     arrivalTime: number,
     departureTime: number,
@@ -187,7 +143,7 @@ export function getIBECiphertext(
     masterPublicKey: mcl.G2,
 ): IEncryptedData {
   let identity: Uint8Array;
-  if (venueInfo.qrCodePayload == undefined) {
+  if (venueInfo.qrCodePayload === undefined) {
     identity = genIdV2(affectedHour, venueInfo);
   } else {
     identity = genIdV3(venueInfo.qrCodePayload, affectedHour * 60 * 60);
@@ -201,6 +157,15 @@ export function getIBECiphertext(
   return enc(masterPublicKey, identity, msgPBytes);
 }
 
+/**
+ * Returns an array of the affected hours, including every hour where the
+ * visit is included, even if only partially.
+ *
+ * @param arrivalTime in seconds of the Unix Epoch
+ * @param departureTime in seconds of the Unix Epoch
+ * @return an array containing the increasing number of hours
+ * since the Unix Epoch
+ */
 export function getAffectedHours(
     arrivalTime: number,
     departureTime: number,
@@ -237,6 +202,16 @@ function venueInfoToContentBytes(venueInfo: VenueInfo): Uint8Array {
   return QRCodeContentV2.encode(qrCodeContent).finish();
 }
 
+/**
+ * Encrypts the associated data for the QRcode.
+ *
+ * @param secretKey
+ * @param message
+ * @param countryData
+ * @param nonce
+ * @param version
+ * @return encryptedMessage
+ */
 export function encryptAssociatedData(
     secretKey: Uint8Array,
     message: string,
@@ -252,10 +227,9 @@ export function encryptAssociatedData(
   const messageBytes: Uint8Array = crowdnotifier_v3.AssociatedData.encode(
       associatedData,
   ).finish();
-  const encryptedMessage = crypto_secretbox_easy(
+  return crypto_secretbox_easy(
       messageBytes,
       nonce,
       secretKey,
   );
-  return encryptedMessage;
 }
