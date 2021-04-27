@@ -3,38 +3,28 @@ import {
   crypto_box_keypair,
   crypto_box_seal,
   crypto_box_seal_open,
-  to_string,
-  IKeyPair,
-  randombytes_buf,
+  crypto_secretbox_NONCEBYTES,
   crypto_secretbox_open_easy,
-  to_base64,
   from_base64,
   from_string,
-  crypto_secretbox_NONCEBYTES,
+  IKeyPair,
+  randombytes_buf,
+  to_base64,
+  to_string,
 } from 'libsodium-wrappers-sumo';
-import {
-  dec,
-  enc,
-  IEncryptedData,
-  keyDer,
-  keyGen,
-  NONCE_LENGTH,
-} from './ibe_primitives';
+import {dec, enc, IEncryptedData, keyDer, keyGen, NONCE_LENGTH} from
+  '../v2/ibe_primitives';
 import mcl from 'mcl-wasm';
-import {
-  EncryptedVenueVisit,
-  VenueInfo,
-  ExposureEvent,
-  MessagePayload,
-} from './structs';
+import {EncryptedVenueVisit, ExposureEvent, MessagePayload, VenueInfo} from
+  './structs';
 import {crowdnotifier_v3} from './messages';
 import {QRCodeEntry as QRCodeEntryV2} from '../v2/proto';
 import {
+  deriveNoncesAndNotificationKey,
+  encryptAssociatedData,
+  genIdV3,
   getAffectedHours,
   getIBECiphertext,
-  deriveNoncesAndNotificationKey,
-  genIdV3,
-  encryptAssociatedData,
 } from './helpers';
 
 /**
@@ -74,7 +64,7 @@ export function setupHA(): IKeyPair {
  * encoded strings
  */
 export function setupLocation(
-    version: number,
+    version: number | undefined,
     pkha: Uint8Array,
     description: string,
     address: string,
@@ -86,8 +76,15 @@ export function setupLocation(
     qrCodeTrace: string;
 } {
   // exact semantics TBD
-  if (version == undefined) {
+  if (version === undefined) {
     version = 3;
+  }
+
+  if (description.length > 100) {
+    throw new Error('Description cannot be longer than 100 characters');
+  }
+  if (address.length > 100) {
+    throw new Error('Address cannot be longer than 100 characters');
   }
 
   const traceLocation = crowdnotifier_v3.TraceLocation.create({
@@ -144,8 +141,10 @@ export function setupLocation(
 }
 
 /**
+ * Compatibility method to correctly create the information from a
+ * version-2 QRcode.
  *
- * @param qrCode
+ * @param qrCodeString the binary representation of the data in the QRcode.
  */
 export function getVenueInfoFromQrCodeV2(qrCodeString: string): VenueInfo {
   const qrCodeAsBytes = from_string(qrCodeString);
@@ -190,8 +189,10 @@ export function getVenueInfoFromQrCodeV2(qrCodeString: string): VenueInfo {
 }
 
 /**
+ * Parses a version 3 QRcode and returns the VenueInfo.
  *
- * @param qrCode
+ * @param qrCodeString base64 representation of the protobuf data
+ * in the QRcode, with an eventual URL part already stripped away.
  */
 export function getVenueInfoFromQrCodeV3(qrCodeString: string): VenueInfo {
   const qrCodeAsBytes = from_base64(qrCodeString);
@@ -245,9 +246,8 @@ export function getCheckIn(
   const masterPublicKey = new mcl.G2();
   masterPublicKey.deserialize(venueInfo.publicKey);
 
-  const ibeCiphertextEntries: Array<IEncryptedData> = [];
-  getAffectedHours(arrivalTime, departureTime).forEach((hour) => {
-    ibeCiphertextEntries.push(
+  const ibeCiphertextEntries = getAffectedHours(arrivalTime, departureTime)
+      .map((hour) =>
         getIBECiphertext(
             arrivalTime,
             departureTime,
@@ -255,8 +255,8 @@ export function getCheckIn(
             venueInfo,
             masterPublicKey,
         ),
-    );
-  });
+      );
+
   return {
     date: departureTime,
     ibeCiphertextEntries: ibeCiphertextEntries,
@@ -306,8 +306,7 @@ export function genPreTrace(
     nonce2: cryptoData.nonce2,
   });
 
-  const preTraceWithProofList: Array<string> = [];
-  getAffectedHours(startTime, endTime).forEach((hour) => {
+  return getAffectedHours(startTime, endTime).map((hour) => {
     const startOfInterval = hour * 60 * 60;
     const identity = genIdV3(qrCodeTrace.qrCodePayload, startOfInterval);
     const pskidl = keyDer(mskl, identity);
@@ -327,15 +326,12 @@ export function genPreTrace(
       startOfInterval: startOfInterval,
     });
 
-    preTraceWithProofList.push(
-        to_base64(
-            crowdnotifier_v3.PreTraceWithProof.encode(
-                preTraceWithProof,
-            ).finish(),
-        ),
+    return to_base64(
+        crowdnotifier_v3.PreTraceWithProof.encode(
+            preTraceWithProof,
+        ).finish(),
     );
   });
-  return preTraceWithProofList;
 }
 
 /**
@@ -380,6 +376,12 @@ export function genTrace(
   return to_base64(crowdnotifier_v3.Trace.encode(trace).finish());
 }
 
+/**
+ * Verifies that a given trace is valid, given a keypair from a HealthAuthority.
+ *
+ * @param preTraceWithProof from the location-organizer
+ * @param haKeyPair secret keypair from the health authority
+ */
 export function verifyTrace(
     preTraceWithProof: crowdnotifier_v3.PreTraceWithProof,
     haKeyPair: IKeyPair,
@@ -402,6 +404,9 @@ export function verifyTrace(
   ) {
     throw new Error('PreTraceWithProof contained undefined fields');
   }
+
+  // Get the encrypted data fromt he pretrace-proof, which allowed the
+  // location owner to be exempt from coercion.
   const ctxtha = preTrace.cipherTextHealthAuthority;
   const mskh = new mcl.Fr();
   try {
@@ -414,6 +419,8 @@ export function verifyTrace(
   } catch (e) {
     return undefined;
   }
+
+  // Check that the pre-trace is valid by verifying the identity is correct.
   const pskidha = keyDer(mskh, preTrace.identity);
   const pskidl = new mcl.G1();
   pskidl.deserialize(preTrace.partialSecretKeyForIdentityOfLocation);
@@ -425,6 +432,9 @@ export function verifyTrace(
   if (compare(preTrace.identity, identity) !== 0) {
     return undefined;
   }
+
+  // Verify that the identity itself has been correctly encrypted
+  // by the location owner.
   const msg_orig = randombytes_buf(NONCE_LENGTH);
   const mpk = new mcl.G2();
   mpk.deserialize(traceProof.masterPublicKey);
@@ -437,41 +447,57 @@ export function verifyTrace(
   }
 }
 
+/**
+ * For the visitor, check if a given encrypted visit matches a trace received
+ * from the server.
+ *
+ * @param rec is the locally stored encrypted visit
+ * @param tr comes from the server
+ */
 export function match(
     rec: EncryptedVenueVisit,
     tr: crowdnotifier_v3.Trace,
 ): ExposureEvent | undefined {
   const skid = new mcl.G1();
   skid.deserialize(tr.secretKeyForIdentity);
-  let exposure: ExposureEvent | undefined = undefined;
-  rec.ibeCiphertextEntries.every((encryptedData: IEncryptedData) => {
-    const msgP = dec(tr.identity, skid, encryptedData);
-    if (!msgP) {
-      return true; // continue
-    }
-    const msgParsed = JSON.parse(to_string(msgP));
-    const messagePayload: MessagePayload = msgParsed;
-    if (!messagePayload.notificationKey) {
-      return true;
-    }
-    // This is required due to the way JSON stringifies UInt8Arrays
-    const nkey = Uint8Array.from(msgParsed.notificationKey.data);
-    const decryptedMsg = crypto_secretbox_open_easy(
-        tr.encryptedAssociatedData,
-        tr.nonce,
-        nkey,
-    );
-    const associatedData = crowdnotifier_v3.AssociatedData.decode(
-        decryptedMsg,
-    );
-    exposure = {
-      id: rec.id,
-      startTimestamp: messagePayload.arrivalTime,
-      endTimestamp: messagePayload.departureTime,
-      message: associatedData.message,
-      countryData: associatedData.countryData,
-    };
-    return false; // break
-  });
-  return exposure;
+
+  // Returns the first element that can be successfully converted
+  // to an ExposureEvent.
+  // if none of the elements match, `undefined` is returned.
+  return rec.ibeCiphertextEntries
+      .reduce((previous: ExposureEvent | undefined,
+          encryptedData: IEncryptedData) => {
+        if (previous !== undefined) {
+          return previous;
+        }
+        const msgP = dec(tr.identity, skid, encryptedData);
+        if (!msgP) {
+          return undefined;
+        }
+        const msgParsed = JSON.parse(to_string(msgP));
+        const messagePayload: MessagePayload = msgParsed;
+        if (!messagePayload.notificationKey) {
+          return undefined;
+        }
+
+        // This is required due to the way JSON stringifies UInt8Arrays
+        const nkey = Uint8Array.from(msgParsed.notificationKey.data);
+        const decryptedMsg = crypto_secretbox_open_easy(
+            tr.encryptedAssociatedData,
+            tr.nonce,
+            nkey,
+        );
+        const associatedData = crowdnotifier_v3.AssociatedData.decode(
+            decryptedMsg,
+        );
+
+        return {
+          id: rec.id,
+          startTimestamp: messagePayload.arrivalTime,
+          endTimestamp: messagePayload.departureTime,
+          message: associatedData.message,
+          countryData: associatedData.countryData,
+        };
+      },
+      undefined);
 }

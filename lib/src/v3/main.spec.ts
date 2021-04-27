@@ -1,8 +1,7 @@
 import {Log} from '../log';
 import {waitReady} from './helpers';
-import {testIbePrimitives} from './ibe_primitives.spec';
 import {testGenIdV2} from './helpers_v2.spec';
-import {testGenIdV3, testHKDFDerivation} from './helpers_v3.spec';
+import {testGenIdV3, testHKDFDerivation, testToBytes} from './helpers_v3.spec';
 import {testCrowdNotifierPrimitives} from './crowd_notifier_primitives.spec';
 
 const log = new Log('v3/main.spec');
@@ -10,7 +9,7 @@ log.info(`Starting at: ${new Date()}`);
 
 export async function main() {
   await waitReady();
-  testIbePrimitives();
+  testToBytes();
   testHKDFDerivation();
   testGenIdV2();
   testGenIdV3();
