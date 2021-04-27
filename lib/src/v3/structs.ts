@@ -1,5 +1,5 @@
 import mcl from 'mcl-wasm';
-import {IEncryptedData} from './ibe_primitives';
+import {IEncryptedData} from '../v2';
 import {crowdnotifier_v3} from './messages';
 
 export interface IOrganizerData extends IOrganizerPublic {
