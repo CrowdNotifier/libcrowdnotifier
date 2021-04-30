@@ -1,6 +1,6 @@
 import mcl from 'mcl-wasm';
 import {IEncryptedData} from '../v2';
-import {crowdnotifier_v3} from './messages';
+import {QRCodePayload, QRCodeTrace} from './proto';
 
 export interface IOrganizerData extends IOrganizerPublic {
     mskO: mcl.Fr;
@@ -38,8 +38,8 @@ export interface ITraceProof {
 }
 
 export interface ILocationData {
-    qrCodePayload: crowdnotifier_v3.QRCodePayload;
-    qrCodeTrace: crowdnotifier_v3.QRCodeTrace;
+    qrCodePayload: QRCodePayload;
+    qrCodeTrace: QRCodeTrace;
 }
 
 export interface ITrace {

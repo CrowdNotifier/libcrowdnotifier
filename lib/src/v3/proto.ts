@@ -1,32 +1,35 @@
 import {Root, Message} from 'protobufjs';
 import protoJSON from './messages.json';
+import * as Long from 'long';
 
 export class TraceLocation extends Message<TraceLocation> {
   // @ts-ignore
   version: number;
   // @ts-ignore
-  descripion: string;
+  description: string;
   // @ts-ignore
   address: string;
   // @ts-ignore
-  startTimestamp: number; // sec since unix epoch
+  startTimestamp: Long; // sec since unix epoch
   // @ts-ignore
-  endTimestamp: number; // sec since unix epoch
+  endTimestamp: Long; // sec since unix epoch
 
   getStartTimestamp(): Date {
-    return new Date(this.startTimestamp * 1000 || new Date().getTime());
+    return new Date(this.startTimestamp.mul(1000).toNumber() ||
+        new Date().getTime());
   }
 
   setStartTimestamp(d: Date) {
-    this.startTimestamp = Math.round(d.getTime() / 1000);
+    this.startTimestamp = Long.fromNumber(Math.round(d.getTime() / 1000));
   }
 
   getEndTimestamp(): Date {
-    return new Date(this.endTimestamp * 1000 || new Date().getTime());
+    return new Date(this.endTimestamp.mul(1000).toNumber() ||
+        new Date().getTime());
   }
 
   setEndTimestamp(d: Date) {
-    this.endTimestamp = Math.round(d.getTime() / 1000);
+    this.endTimestamp = Long.fromNumber(Math.round(d.getTime() / 1000));
   }
 }
 
@@ -196,6 +199,31 @@ export class Trace extends Message<Trace> {
   // @ts-ignore
   encryptedAssociatedData: Uint8Array;
 }
+
+export enum VenueType {
+  // eslint-disable-next-line no-unused-vars
+  OTHER = 0,
+  // eslint-disable-next-line no-unused-vars
+  MEETING_ROOM = 1,
+  // eslint-disable-next-line no-unused-vars
+  CAFETERIA = 2,
+  // eslint-disable-next-line no-unused-vars
+  PRIVATE_EVENT = 3,
+  // eslint-disable-next-line no-unused-vars
+  CANTEEN = 4,
+  // eslint-disable-next-line no-unused-vars
+  LIBRARY = 5,
+  // eslint-disable-next-line no-unused-vars
+  LECTURE_ROOM = 6,
+  // eslint-disable-next-line no-unused-vars
+  SHOP = 7,
+  // eslint-disable-next-line no-unused-vars
+  GYM = 8,
+  // eslint-disable-next-line no-unused-vars
+  KITCHEN_AREA = 9,
+  // eslint-disable-next-line no-unused-vars
+  OFFICE_SPACE = 10,
+};
 
 try {
   const protoRoot = Root.fromJSON(protoJSON);

@@ -31,11 +31,15 @@ import {
   Trace,
   TraceProof,
 
-  genPreTrace,
-  genTrace,
-  match,
   setupHA,
+  setupLocation,
+  match,
   verifyTrace,
+  genTrace,
+  genPreTrace,
+  getCheckIn,
+  getVenueInfoFromQrCodeV2,
+  getVenueInfoFromQrCodeV3,
 } from './v3';
 import {
   genOrgCode,
@@ -54,8 +58,16 @@ export interface IKeyPair {
 
 export {
   // CrowdNotifierPrimitives
-  setupHA, genCode, scan, genOrgStatic,
-  genPreTrace, genTrace, verifyTrace, match,
+  setupHA,
+  setupLocation,
+  match,
+  verifyTrace,
+  genTrace,
+  genPreTrace,
+  getCheckIn,
+  getVenueInfoFromQrCodeV2,
+  getVenueInfoFromQrCodeV3,
+  genCode, scan, genOrgStatic,
 
   // Proto structures for v3
   TraceLocation,

@@ -3,9 +3,9 @@ import {crypto_hash_sha256, crypto_secretbox_easy, from_string} from
   'libsodium-wrappers-sumo';
 import {CryptoData, MessagePayload, VenueInfo} from './structs';
 import {enc, IEncryptedData} from '../v2/ibe_primitives';
-import {crowdnotifier_v3} from './messages';
 import {baseG1, baseG2, genId, QRCodeContent as QRCodeContentV2,
   waitReady, xor} from '../v2';
+import {NotifyMeLocationData, AssociatedData} from './proto';
 
 export {waitReady, baseG1, baseG2, xor, genId};
 
@@ -199,7 +199,7 @@ export function getAffectedHours(
  * @returns byte array representing QRCodeContent
  */
 function venueInfoToContentBytes(venueInfo: VenueInfo): Uint8Array {
-  const notifyMeLocationData = crowdnotifier_v3.NotifyMeLocationData.decode(
+  const notifyMeLocationData = NotifyMeLocationData.decode(
       venueInfo.countryData,
   );
   const qrCodeContent = QRCodeContentV2.create({
@@ -231,12 +231,12 @@ export function encryptAssociatedData(
     nonce: Uint8Array,
     version: number,
 ): Uint8Array {
-  const associatedData = crowdnotifier_v3.AssociatedData.create({
+  const associatedData = AssociatedData.create({
     version: version,
     message: message,
     countryData: countryData,
   });
-  const messageBytes: Uint8Array = crowdnotifier_v3.AssociatedData.encode(
+  const messageBytes: Uint8Array = AssociatedData.encode(
       associatedData,
   ).finish();
   return crypto_secretbox_easy(

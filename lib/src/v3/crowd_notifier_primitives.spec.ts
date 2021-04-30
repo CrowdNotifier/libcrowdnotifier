@@ -8,12 +8,10 @@ import {
   verifyTrace,
   match,
 } from './crowd_notifier_primitives';
-import {IKeyPair, Log} from '..';
+import {IKeyPair, Log, QRCodePayload, QRCodeTrace} from '..';
 import {ILocationData} from './structs';
 import {from_base64, from_string, to_base64} from 'libsodium-wrappers-sumo';
-import {crowdnotifier_v3} from './messages';
-
-const Long = require('long');
+import {Trace, PreTraceWithProof} from './proto';
 
 /**
  * Very simple crypto test for CrowdNotifierPrimitives using the new BNS scheme
@@ -46,10 +44,10 @@ export function testCrowdNotifierPrimitives() {
       infoLocation1,
   );
   const location1: ILocationData = {
-    qrCodePayload: crowdnotifier_v3.QRCodePayload.decode(
+    qrCodePayload: QRCodePayload.decode(
         from_base64(qrCodeStrings1.qrCodePayload),
     ),
-    qrCodeTrace: crowdnotifier_v3.QRCodeTrace.decode(
+    qrCodeTrace: QRCodeTrace.decode(
         from_base64(qrCodeStrings1.qrCodeTrace),
     ),
   };
@@ -65,10 +63,10 @@ export function testCrowdNotifierPrimitives() {
       infoLocation2,
   );
   const location2: ILocationData = {
-    qrCodePayload: crowdnotifier_v3.QRCodePayload.decode(
+    qrCodePayload: QRCodePayload.decode(
         from_base64(qrCodeStrings2.qrCodePayload),
     ),
-    qrCodeTrace: crowdnotifier_v3.QRCodeTrace.decode(
+    qrCodeTrace: QRCodeTrace.decode(
         from_base64(qrCodeStrings2.qrCodeTrace),
     ),
   };
@@ -91,19 +89,16 @@ export function simulateVisits(
 ) {
   log.info('Simulating two visits');
   const qrCode1 = to_base64(
-      crowdnotifier_v3.QRCodePayload.encode(location1.qrCodePayload).finish(),
+      QRCodePayload.encode(location1.qrCodePayload).finish(),
   );
   const qrCode2 = to_base64(
-      crowdnotifier_v3.QRCodePayload.encode(location2.qrCodePayload).finish(),
+      QRCodePayload.encode(location2.qrCodePayload).finish(),
   );
 
   log.info('Creating two users');
   const venueInfo1 = getVenueInfoFromQrCodeV3(qrCode1);
-  const starTimeUnconverted1 = location1.qrCodePayload.locationData!
-      .startTimestamp!;
-  const startTime1: number = Long.isLong(starTimeUnconverted1) ?
-        (starTimeUnconverted1 as Long).toNumber() :
-        (starTimeUnconverted1 as number);
+  const startTime1 = location1.qrCodePayload.locationData!
+      .startTimestamp!.toNumber();
   const arrivalTime1 = startTime1 + 60 * 60 * 2;
   const departureTime1 = arrivalTime1 + 60 * 60 * 1; // stayed for an hour
   const encryptedVisit1 = getCheckIn(
@@ -120,11 +115,8 @@ export function simulateVisits(
       new Date(departureTime1 * 1000).toTimeString(),
   );
   const venueInfo2 = getVenueInfoFromQrCodeV3(qrCode2);
-  const startTimeUnconverted2 = location2.qrCodePayload.locationData!
-      .endTimestamp!;
-  const startTime2: number = Long.isLong(startTimeUnconverted2) ?
-        (startTimeUnconverted2 as Long).toNumber() :
-        (startTimeUnconverted2 as number);
+  const startTime2 = location2.qrCodePayload.locationData!
+      .endTimestamp!.toNumber();
   const arrivalTime2 = startTime2 + 60 * 60 * 1;
   const departureTime2 = arrivalTime2 + 60 * 60 * 1;
   const encryptedVisit2 = getCheckIn(
@@ -141,11 +133,8 @@ export function simulateVisits(
       new Date(departureTime2 * 1000).toTimeString(),
   );
 
-  const endTimeUnconverted1 = location1.qrCodePayload.locationData!
-      .endTimestamp!;
-  const endTime1 = Long.isLong(endTimeUnconverted1) ?
-        (endTimeUnconverted1 as Long).toNumber() :
-        (endTimeUnconverted1 as number);
+  const endTime1 = location1.qrCodePayload.locationData!
+      .endTimestamp!.toNumber();
   log.info(
       venueInfo1.description,
       ' got infected from ',
@@ -161,10 +150,10 @@ export function simulateVisits(
   );
 
   log.info('Creating traces from health authority');
-  const preTraceList: Array<crowdnotifier_v3.PreTraceWithProof> = [];
-  const traceList: Array<crowdnotifier_v3.Trace> = [];
+  const preTraceList: Array<PreTraceWithProof> = [];
+  const traceList: Array<Trace> = [];
   preTraceEncodingList.forEach((encoding) => {
-    const preTraceWithProof = crowdnotifier_v3.PreTraceWithProof.decode(
+    const preTraceWithProof = PreTraceWithProof.decode(
         from_base64(encoding),
     );
     const traceEncoding = genTrace(
@@ -179,7 +168,7 @@ export function simulateVisits(
     }
     preTraceList.push(preTraceWithProof);
     traceList.push(
-        crowdnotifier_v3.Trace.decode(from_base64(traceEncoding)),
+        Trace.decode(from_base64(traceEncoding)),
     );
   });
 

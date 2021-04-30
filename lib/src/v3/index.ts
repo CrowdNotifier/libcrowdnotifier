@@ -22,7 +22,7 @@ import {
   QRCodeTrace,
   Trace,
   TraceProof,
-} from './_messages';
+} from './proto';
 
 export {
   TraceLocation,
