@@ -17,19 +17,7 @@ import {
   waitReady,
 } from './v2';
 import {
-  TraceLocation,
-  CrowdNotifierData,
-  AssociatedData,
-  EEventCriticality,
-  EVenueType,
-  NotifyMeAssociatedData,
-  NotifyMeLocationData,
-  PreTrace,
-  PreTraceWithProof,
-  QRCodePayload,
-  QRCodeTrace,
-  Trace,
-  TraceProof,
+  crowdnotifier_v3,
 
   genPreTrace,
   genTrace,
@@ -58,19 +46,7 @@ export {
   genPreTrace, genTrace, verifyTrace, match,
 
   // Proto structures for v3
-  TraceLocation,
-  CrowdNotifierData,
-  AssociatedData,
-  EEventCriticality,
-  EVenueType,
-  NotifyMeAssociatedData,
-  NotifyMeLocationData,
-  PreTrace,
-  PreTraceWithProof,
-  QRCodePayload,
-  QRCodeTrace,
-  Trace,
-  TraceProof,
+  crowdnotifier_v3,
 
   // Managed CrowdNotifier (v2.1)
   genOrgCode, recoverOrgMasterSecret, genOrgInit,
