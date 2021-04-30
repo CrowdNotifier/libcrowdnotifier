@@ -40,7 +40,8 @@ export function genIdV3(
     intervalStart: number | Long,
 ): Uint8Array {
   const cryptoData = deriveNoncesAndNotificationKey(qrCodePayload);
-  const intervalLenght = 3600; // 1 hour, currently only one duration is supported
+  // 1 hour, currently only one duration is supported
+  const intervalLenght = 3600;
 
   const preid = crypto_hash_sha256(
       Uint8Array.from([
@@ -51,12 +52,12 @@ export function genIdV3(
   );
 
   const timeKey = crypto_hash_sha256(
-    Uint8Array.from([
-      ...from_string('CN-TIMEKEY'),
-      ...toBytesInt32(intervalLenght),
-      ...toBytesInt64(intervalStart),
-      ...cryptoData.nonceTimekey
-    ]),
+      Uint8Array.from([
+        ...from_string('CN-TIMEKEY'),
+        ...toBytesInt32(intervalLenght),
+        ...toBytesInt64(intervalStart),
+        ...cryptoData.nonceTimekey,
+      ]),
   );
 
   return crypto_hash_sha256(
