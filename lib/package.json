@@ -3,7 +3,7 @@
     "repository": "https://github.com/CrowdNotifier/libcrowdnotifier",
     "license": "MPL-2.0",
     "author": "Linus Gasser <linus.gasser@epfl.ch>",
-    "version": "1.2.0-prerelease10",
+    "version": "1.2.0-prerelease11",
     "private": false,
     "scripts": {
         "build": "npx tsc --build tsconfig.json",

@@ -10,11 +10,12 @@
     "doc": "typedoc --tsconfig tsconfig.json --out ../docs src/ types/",
     "lint": "npx eslint v*/*.ts *.ts",
     "lint:fix": "npx eslint --fix v*/*.ts *.ts",
-    "test": "for v in 1 1_1 2 2_1; do npm run testv$v; done",
+    "test": "for v in 1 1_1 2 2_1 3; do npm run testv$v; done",
     "testv1": "npx ts-node v1/system.spec.ts",
     "testv1_1": "npx ts-node v1_1/system.spec.ts",
     "testv2": "npx ts-node v2/system.spec.ts",
-    "testv2_1": "npx ts-node v2_1/managed.spec.ts"
+    "testv2_1": "npx ts-node v2_1/managed.spec.ts",
+    "testv3": "npx ts-node v3/message.spec.ts"
   },
   "dependencies": {
     "@c4dt/libcrowdnotifier": "^1.0.9",
