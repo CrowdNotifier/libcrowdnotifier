@@ -8,10 +8,36 @@ import {
   getCheckIn,
   getVenueInfoFromQrCodeV2,
   getVenueInfoFromQrCodeV3} from './crowd_notifier_primitives';
-const messages = require('./messages');
+import {
+  TraceLocation,
+  CrowdNotifierData,
+  AssociatedData,
+  EEventCriticality,
+  EVenueType,
+  NotifyMeAssociatedData,
+  NotifyMeLocationData,
+  PreTrace,
+  PreTraceWithProof,
+  QRCodePayload,
+  QRCodeTrace,
+  Trace,
+  TraceProof,
+} from './_messages';
 
 export {
-  messages,
+  TraceLocation,
+  CrowdNotifierData,
+  AssociatedData,
+  EEventCriticality,
+  EVenueType,
+  NotifyMeAssociatedData,
+  NotifyMeLocationData,
+  PreTrace,
+  PreTraceWithProof,
+  QRCodePayload,
+  QRCodeTrace,
+  Trace,
+  TraceProof,
 
   setupHA,
   setupLocation,
