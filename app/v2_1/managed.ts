@@ -1,13 +1,14 @@
 import {
+  mcl, sodium,
+} from '@c4dt/libcrowdnotifier';
+import {
   genOrgStatic,
   genPreTrace,
   IOrganizerData,
-  mcl,
   PreTrace, PreTraceWithProof,
   QRCodeTrace,
-  sodium,
   TraceProof,
-} from '@c4dt/libcrowdnotifier';
+} from '@c4dt/libcrowdnotifier/dist/v2';
 import {Room} from '../v2';
 
 /**
