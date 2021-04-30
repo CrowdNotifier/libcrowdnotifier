@@ -12,17 +12,25 @@ import {
   QRCodeContent,
   MasterTrace,
   baseG1, baseG2, genId,
-  PreTrace,
-  TraceProof,
-  PreTraceWithProof,
   QRCodeEntry,
-  QRCodeTrace,
   scan,
-  Trace,
   waitReady,
 } from './v2';
 import {
-  messages,
+  TraceLocation,
+  CrowdNotifierData,
+  AssociatedData,
+  EEventCriticality,
+  EVenueType,
+  NotifyMeAssociatedData,
+  NotifyMeLocationData,
+  PreTrace,
+  PreTraceWithProof,
+  QRCodePayload,
+  QRCodeTrace,
+  Trace,
+  TraceProof,
+
   genPreTrace,
   genTrace,
   match,
@@ -48,14 +56,28 @@ export {
   // CrowdNotifierPrimitives
   setupHA, genCode, scan, genOrgStatic,
   genPreTrace, genTrace, verifyTrace, match,
-  messages,
+
+  // Proto structures for v3
+  TraceLocation,
+  CrowdNotifierData,
+  AssociatedData,
+  EEventCriticality,
+  EVenueType,
+  NotifyMeAssociatedData,
+  NotifyMeLocationData,
+  PreTrace,
+  PreTraceWithProof,
+  QRCodePayload,
+  QRCodeTrace,
+  Trace,
+  TraceProof,
+
   // Managed CrowdNotifier (v2.1)
   genOrgCode, recoverOrgMasterSecret, genOrgInit,
   // Generic crypto primitives needed
   waitReady, IEncryptedData, baseG1, baseG2, genId,
-  // Proto structures needed
-  PreTraceWithProof, Trace, PreTrace, TraceProof,
-  QRCodeTrace, QRCodeEntry, QRCodeContent, MasterTrace,
+  // Proto structures for v2
+  QRCodeEntry, QRCodeContent, MasterTrace,
   EntryProof,
   // Structures
   ILocationData, IOrganizerData, IOrganizerPublic,

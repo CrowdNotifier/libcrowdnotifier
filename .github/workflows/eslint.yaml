@@ -26,6 +26,5 @@ jobs:
       - name: test app
         run: |
           cd app
-          cat package.json
           npm ci
           npm run lint
