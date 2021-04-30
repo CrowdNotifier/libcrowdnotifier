@@ -4,7 +4,7 @@ on:
   pull_request:
 
 env:
-  NODE_VERSION: 10
+  NODE_VERSION: 12
 
 jobs:
   npm:
@@ -20,11 +20,12 @@ jobs:
       - name: lint lib
         run: |
           cd lib
-          npm ci -D
+          npm ci
           npm run lint
 
       - name: test app
         run: |
           cd app
-          npm ci -D
+          cat package.json
+          npm ci
           npm run lint
