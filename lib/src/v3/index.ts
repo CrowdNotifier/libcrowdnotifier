@@ -8,36 +8,10 @@ import {
   getCheckIn,
   getVenueInfoFromQrCodeV2,
   getVenueInfoFromQrCodeV3} from './crowd_notifier_primitives';
-import {
-  TraceLocation,
-  CrowdNotifierData,
-  AssociatedData,
-  EEventCriticality,
-  EVenueType,
-  NotifyMeAssociatedData,
-  NotifyMeLocationData,
-  PreTrace,
-  PreTraceWithProof,
-  QRCodePayload,
-  QRCodeTrace,
-  Trace,
-  TraceProof,
-} from './_messages';
+import {crowdnotifier_v3} from './messages';
 
 export {
-  TraceLocation,
-  CrowdNotifierData,
-  AssociatedData,
-  EEventCriticality,
-  EVenueType,
-  NotifyMeAssociatedData,
-  NotifyMeLocationData,
-  PreTrace,
-  PreTraceWithProof,
-  QRCodePayload,
-  QRCodeTrace,
-  Trace,
-  TraceProof,
+  crowdnotifier_v3,
 
   setupHA,
   setupLocation,
