@@ -26,12 +26,12 @@ export function testHKDFDerivation() {
     );
     const cryptoData = deriveNoncesAndNotificationKey(tv.qrCodePayload);
     log.assertTrue(
-        Buffer.compare(tv.nonce1, cryptoData.nonce1) === 0,
-        'Nonce 1 doesn\'t match',
+        Buffer.compare(tv.noncePreId, cryptoData.noncePreId) === 0,
+        'Nonce PreId doesn\'t match',
     );
     log.assertTrue(
-        Buffer.compare(tv.nonce2, cryptoData.nonce2) === 0,
-        'Nonce 2 doesn\'t match',
+        Buffer.compare(tv.nonceTimekey, cryptoData.nonceTimekey) === 0,
+        'Nonce Timekey doesn\'t match',
     );
     log.assertTrue(
         Buffer.compare(tv.notificationKey, cryptoData.notificationKey) === 0,

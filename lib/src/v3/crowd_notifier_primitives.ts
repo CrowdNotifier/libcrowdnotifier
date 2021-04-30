@@ -211,8 +211,8 @@ export function getVenueInfoFromQrCodeV3(qrCodeString: string): VenueInfo {
     address: qrCodePayload.locationData.address,
     notificationKey: cryptoData.notificationKey,
     publicKey: qrCodePayload.crowdNotifierData.publicKey,
-    nonce1: cryptoData.nonce1,
-    nonce2: cryptoData.nonce2,
+    nonce1: cryptoData.noncePreId,
+    nonce2: cryptoData.nonceTimekey,
     validFrom: qrCodePayload.locationData.startTimestamp,
     validTo: qrCodePayload.locationData.endTimestamp,
     qrCodePayload: qrCodeAsBytes,
@@ -282,8 +282,8 @@ export function genPreTrace(
 
   const traceProof = TraceProof.create({
     masterPublicKey: qrCodePayload.crowdNotifierData.publicKey,
-    nonce1: cryptoData.nonce1,
-    nonce2: cryptoData.nonce2,
+    nonce1: cryptoData.noncePreId,
+    nonce2: cryptoData.nonceTimekey,
   });
 
   const preTraceWithProofList: Array<string> = [];

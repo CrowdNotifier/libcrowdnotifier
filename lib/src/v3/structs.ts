@@ -62,9 +62,9 @@ export interface VenueInfo {
 }
 
 export interface CryptoData {
-  nonce1: Uint8Array;
-  nonce2: Uint8Array;
-  notificationKey: Uint8Array;
+    noncePreId: Uint8Array;
+    nonceTimekey: Uint8Array;
+    notificationKey: Uint8Array;
 }
 
 export interface MessagePayload {
