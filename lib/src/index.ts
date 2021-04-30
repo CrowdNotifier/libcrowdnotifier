@@ -4,8 +4,6 @@ import {
   EntryProof,
   genCode,
   genOrgStatic,
-  genPreTrace,
-  genTrace,
   IEncryptedData,
   ILocationData,
   IOrganizerData,
@@ -13,7 +11,6 @@ import {
   IMasterTrace,
   QRCodeContent,
   MasterTrace,
-  match,
   baseG1, baseG2, genId,
   PreTrace,
   TraceProof,
@@ -21,11 +18,17 @@ import {
   QRCodeEntry,
   QRCodeTrace,
   scan,
-  setupHA,
   Trace,
-  verifyTrace,
   waitReady,
 } from './v2';
+import {
+  messages,
+  genPreTrace,
+  genTrace,
+  match,
+  setupHA,
+  verifyTrace,
+} from './v3';
 import {
   genOrgCode,
   genOrgInit,
@@ -45,6 +48,7 @@ export {
   // CrowdNotifierPrimitives
   setupHA, genCode, scan, genOrgStatic,
   genPreTrace, genTrace, verifyTrace, match,
+  messages,
   // Managed CrowdNotifier (v2.1)
   genOrgCode, recoverOrgMasterSecret, genOrgInit,
   // Generic crypto primitives needed

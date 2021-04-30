@@ -1,16 +1,17 @@
 import {
+  IKeyPair, mcl, sodium,
+} from '@c4dt/libcrowdnotifier';
+import {
   genTrace,
-  IEncryptedData, IKeyPair, MasterTrace,
+  IEncryptedData, MasterTrace,
   match,
-  mcl,
   PreTraceWithProof, QRCodeContent,
   QRCodeEntry, QRCodeTrace,
   scan,
   setupHA,
-  sodium,
   Trace,
   verifyTrace,
-} from '@c4dt/libcrowdnotifier';
+} from '@c4dt/libcrowdnotifier/dist/v2';
 import {randomBytes} from 'crypto';
 import {Organizer, Room} from './managed';
 

@@ -10,7 +10,7 @@
         "doc": "typedoc --tsconfig tsconfig.json --out ../docs src/ types/",
         "lint": "npx eslint src/*/*ts src/*ts --ignore-pattern src/**/*.d.ts",
         "lint:fix": "npx eslint --fix src/*/*ts src/*ts --ignore-pattern src/**/*.d.ts",
-        "test": "for v in 2 2_1; do npm run testv$v; done",
+        "test": "for v in 2 2_1 3; do npm run testv$v; done",
         "testv2": "npx ts-node src/v2/main.spec.ts",
         "testv2_1": "npx ts-node src/v2_1/main.spec.ts",
         "testv3": "npx ts-node src/v3/main.spec.ts",
