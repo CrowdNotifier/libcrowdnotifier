@@ -37,24 +37,35 @@ export function genIdV2(
  */
 export function genIdV3(
     qrCodePayload: Uint8Array,
-    interval_start: number | Long,
+    intervalStart: number | Long,
 ): Uint8Array {
   const cryptoData = deriveNoncesAndNotificationKey(qrCodePayload);
+  const intervalLenght = 3600; // 1 hour, currently only one duration is supported
+
   const preid = crypto_hash_sha256(
       Uint8Array.from([
         ...from_string('CN-PREID'),
         ...qrCodePayload,
-        ...cryptoData.nonce1,
+        ...cryptoData.noncePreId,
       ]),
   );
-  const duration = 3600; // Currently only one duration is supported
+
+  const timeKey = crypto_hash_sha256(
+    Uint8Array.from([
+      ...from_string('CN-TIMEKEY'),
+      ...toBytesInt32(intervalLenght),
+      ...toBytesInt64(intervalStart),
+      ...cryptoData.nonceTimekey
+    ]),
+  );
+
   return crypto_hash_sha256(
       Uint8Array.from([
         ...from_string('CN-ID'),
         ...preid,
-        ...toBytesInt32(duration),
-        ...toBytesInt64(interval_start), // timestamp might use up to 8 bytes
-        ...cryptoData.nonce2,
+        ...toBytesInt32(intervalLenght),
+        ...toBytesInt64(intervalStart), // timestamp might use up to 8 bytes
+        ...timeKey,
       ]),
   );
 }
@@ -119,8 +130,8 @@ export function deriveNoncesAndNotificationKey(
   const hash = 'SHA-256';
   const derivedBuffer: Uint8Array = hkdf(ikm, length, {salt, info, hash});
   return {
-    nonce1: derivedBuffer.slice(0, 32),
-    nonce2: derivedBuffer.slice(32, 64),
+    noncePreId: derivedBuffer.slice(0, 32),
+    nonceTimekey: derivedBuffer.slice(32, 64),
     notificationKey: derivedBuffer.slice(64, 96),
   };
 }
