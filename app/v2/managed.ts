@@ -1,14 +1,15 @@
 import {
+  mcl, sodium,
+} from '@c4dt/libcrowdnotifier';
+import {
   EntryProof,
   genOrgStatic,
   genPreTrace,
   IOrganizerData, IOrganizerPublic, IMasterTrace,
-  mcl,
   PreTrace, PreTraceWithProof, QRCodeContent, QRCodeEntry,
   QRCodeTrace,
-  sodium,
   TraceProof,
-} from '@c4dt/libcrowdnotifier';
+} from '@c4dt/libcrowdnotifier/dist/v2';
 import {randomBytes} from 'crypto';
 
 /**

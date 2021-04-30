@@ -17,7 +17,7 @@
     "testv2_1": "npx ts-node v2_1/managed.spec.ts"
   },
   "dependencies": {
-    "@c4dt/libcrowdnotifier": "^1.0.9",
+    "@c4dt/libcrowdnotifier": "file:../lib",
     "protobufjs": "^6.10.2"
   },
   "devDependencies": {
