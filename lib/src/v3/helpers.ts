@@ -106,7 +106,6 @@ export function toBytesInt64(num: (number | Long | bigint)): Uint8Array {
       throw new Error('This bigint is too big to be converted to an Int64');
     }
   } else {
-    console.log(num);
     return Buffer.from(num.toBytesBE());
   }
 

@@ -39,7 +39,7 @@ export function testHKDFDerivation() {
 
   for (const tv of hkdfTestVectors) {
     log.info(
-        'Verifying deriveNoncesAndNotificationKey for %s',
+        'Verifying deriveNoncesAndNotificationKey for',
         JSON.stringify(tv),
     );
     const cryptoData = deriveNoncesAndNotificationKey(tv.qrCodePayload);
