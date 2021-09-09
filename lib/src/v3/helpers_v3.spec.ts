@@ -22,10 +22,12 @@ export function testToBytes() {
   log.throws(() => toBytesInt64(Number.MIN_SAFE_INTEGER - 1));
 
   // Test bigint in toBytesInt64
-  const bufMax = toBytesInt64(BigInt(2) ** BigInt(63)-BigInt(1));
-  const bufMin = toBytesInt64(-(BigInt(2) ** BigInt(63)));
-  log.throws(() => toBytesInt64(BigInt(2) ** BigInt(63)));
-  log.throws(() => toBytesInt64(-(BigInt(2) ** BigInt(63)) - BigInt(1)));
+  const max64 = (BigInt(1) << BigInt(63)) - BigInt(1);
+  const min64 = -(BigInt(1) << BigInt(63));
+  const bufMax = toBytesInt64(max64);
+  const bufMin = toBytesInt64(min64);
+  log.throws(() => toBytesInt64(max64 + BigInt(1)));
+  log.throws(() => toBytesInt64(min64 - BigInt(1)));
 
   // Test Long in toBytesInt64
   toBytesInt64(Long.fromBytesBE(bufMax));
