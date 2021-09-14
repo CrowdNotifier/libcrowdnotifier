@@ -60,6 +60,13 @@ export class Log {
     } catch (e) {}
   }
 
+  async asyncThrows(fn: () => void, ...msgs: any[]) {
+    try {
+      await fn();
+      this.panic(new Error(`${fn} didn't throw error. ${msgs.join(':')}`));
+    } catch (e) {}
+  }
+
   test(expect: boolean, a: any, b: any, ...msgs: any[]) {
     const [jsona, jsonb] = [JSON.stringify(a), JSON.stringify(b)];
     const result = jsona === jsonb;

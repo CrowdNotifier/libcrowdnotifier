@@ -3,7 +3,7 @@
   "repository": "https://github.com/CrowdNotifier/libcrowdnotifier",
   "license": "MPL-2.0",
   "author": "Linus Gasser <linus.gasser@epfl.ch>",
-  "version": "1.2.0-prerelease13",
+  "version": "1.4.0-prerelease2",
   "private": false,
   "scripts": {
     "build": "npx tsc --build tsconfig.json",
@@ -18,7 +18,7 @@
     "testv3": "npx ts-node v3/message.spec.ts"
   },
   "dependencies": {
-    "@c4dt/libcrowdnotifier": "^1.0.9",
+    "@c4dt/libcrowdnotifier": "^1.4.0-prerelease2",
     "protobufjs": "^6.10.2"
   },
   "devDependencies": {

@@ -30,6 +30,10 @@ import {
   genOrgInit,
   recoverOrgMasterSecret,
 } from './v2_1';
+import {
+  crowdnotifier_v4,
+  createLocationData,
+} from './v4';
 import {Log} from './log';
 import mcl from 'mcl-wasm';
 import sodium from 'libsodium-wrappers-sumo';
@@ -41,6 +45,12 @@ export interface IKeyPair {
 }
 
 export {
+  // Creation of version-4 QRcode
+  createLocationData,
+
+  // Proto structures for v4
+  crowdnotifier_v4,
+
   // CrowdNotifierPrimitives
   setupHA, genCode, scan, genOrgStatic,
   genPreTrace, genTrace, verifyTrace, match,

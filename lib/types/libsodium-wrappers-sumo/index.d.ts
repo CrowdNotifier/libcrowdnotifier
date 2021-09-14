@@ -13,13 +13,17 @@ declare module "libsodium-wrappers-sumo" {
 
     export function randombytes_buf(len: number): Uint8Array;
 
-    export function to_base64(bin: Uint8Array): string;
-
     export function from_base64(str: string): Uint8Array;
+
+    export function from_hex(str: string): Uint8Array;
 
     export function from_string(str: string): Uint8Array;
 
     export function to_string(buf: Uint8Array): string;
+
+    export function to_base64(bin: Uint8Array): string;
+
+    export function to_hex(bin: Uint8Array): string;
 
     export interface IKeyPair {
         keyType: string;

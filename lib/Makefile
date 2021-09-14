@@ -1,5 +1,5 @@
 
-proto: src/v1/messages.json src/v1_1/messages.json src/v2/messages.json src/v3/messages.d.ts
+proto: src/v1/messages.json src/v1_1/messages.json src/v2/messages.json src/v3/messages.d.ts src/v4/messages.d.ts
 
 src/v1/messages.json: src/v1/messages.proto
 	npx pbjs -t json $< > $@
@@ -11,10 +11,16 @@ src/v2/messages.json: src/v2/messages.proto
 	npx pbjs -t json $< > $@
 
 src/v3/messages.d.ts: src/v3/messages.js
-	npx pbts -o src/v3/messages.d.ts src/v3/messages.js
+	npx pbts -o $@ $<
 
 src/v3/messages.js: src/v3/messages.proto
-	npx pbjs -t static-module -w commonjs -o src/v3/messages.js src/v3/messages.proto
+	npx pbjs -t static-module -w commonjs -o $@ $<
+
+src/v4/messages.d.ts: src/v4/messages.js
+	npx pbts -o $@ $<
+
+src/v4/messages.js: src/v4/messages.proto
+	npx pbjs -t static-module -w commonjs -o $@ $<
 
 publish: proto
 	rm -rf dist

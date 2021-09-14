@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package crowdnotifier_v4;
+
+// The data of the QRcode
+message QRCodePayload {
+  uint32 version = 1;
+  TraceLocation locationData = 2;
+  CrowdNotifierData crowdNotifierData = 3;
+
+  // protobuf encoded SwissCovidLocationData message.
+  bytes countryData = 4;
+}
+
+message TraceLocation {
+  uint32 version = 1;
+
+  // max. 100 characters
+  string description = 2;
+
+  // max. 100 characters
+  string address = 3;
+
+  // UNIX timestamp (in seconds)
+  uint64 startTimestamp = 4;
+
+  // UNIX timestamp (in seconds)
+  uint64 endTimestamp = 5;
+}
+
+message CrowdNotifierData {
+  uint32 version = 1;
+
+  // The public key of the health authority
+  bytes publicKey = 2;
+
+  // 32 bytes of random data
+  bytes cryptographicSeed = 3;
+
+  // Ignore ;)
+  uint32 type = 4; // exact semantic tbd
+}
+
+message SwissCovidLocationData {
+  uint32 version = 1;
+
+  // For the moment always USER_QR_CODE
+  VenueType type = 2;
+
+  // Description of the room
+  string room = 3;
+
+  // How long until a warning is displayed if no checkout is done
+  int64 checkoutWarningDelayMs = 4;
+
+  // How long until the user is checked out - not sure if it is used in the apps
+  int64 automaticCheckoutDelaylMs = 5;
+
+  // Delays after which a reminder is shown in the app.
+  repeated int64 reminderDelayOptionsMs = 6;
+}
+
+enum VenueType {
+  USER_QR_CODE = 0;
+  CONTACT_TRACING_QR_CODE = 1;
+}
